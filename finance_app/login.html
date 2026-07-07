@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Thu Chi Cá Nhân - Đăng nhập</title>
+    <!-- Import Font Awesome cho các icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Import Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #5842f4;
+            --primary-hover: #4532d1;
+            --text-dark: #1a202c;
+            --text-gray: #718096;
+            --bg-light: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+        }
+
+        /* Logo and Header */
+        .header-section {
+            margin-bottom: 30px;
+        }
+
+        .logo-box {
+            background-color: var(--primary-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 auto 20px;
+        }
+
+        .main-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .sub-title {
+            font-size: 14px;
+            color: var(--primary-color);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Login Card */
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+            text-align: left;
+        }
+
+        .card-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .card-header p {
+            color: var(--text-gray);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* Form styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+
+        .forgot-pass {
+            font-size: 12px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--bg-light);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+        }
+
+        input::placeholder {
+            color: #a0aec0;
+        }
+
+        /* Buttons */
+        .btn-login {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Separator */
+        .separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 25px 0;
+            color: var(--text-gray);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .separator::before { margin-right: 15px; }
+        .separator::after { margin-left: 15px; }
+
+        /* Social buttons */
+        .social-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn-social {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: white;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-social:hover {
+            background-color: var(--bg-light);
+        }
+
+        .btn-social i.fa-google { color: #ea4335; }
+        .btn-social i.fa-mobile-screen-button { color: var(--primary-color); }
+
+        /* Footer */
+        .footer-text {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .footer-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 25px;
+            }
+            .social-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="logo-box">VN</div>
+            <h1 class="main-title">Sổ Thu Chi Cá Nhân</h1>
+            <p class="sub-title">Phiên bản Web 2026</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card">
+            <div class="card-header">
+                <h2>Chào mừng quay trở lại</h2>
+                <p>Quản lý tài chính cá nhân hiệu quả và thông minh hơn</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Địa chỉ Email</label>
+                    <div class="input-wrapper">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="text" id="email" placeholder="demo@viettu.vn or admin">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="password">Mật khẩu</label>
+                        <a href="#" class="forgot-pass">Quên mật khẩu?</a>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" value="12345678">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">Đăng nhập</button>
+            </form>
+
+            <div class="separator">HOẶC TIẾP TỤC BẰNG</div>
+
+            <div class="social-group">
+                <button class="btn-social">
+                    <i class="fa-brands fa-google"></i>
+                    Google
+                </button>
+                <button class="btn-social">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    Số điện thoại
+                </button>
+            </div>
+
+            <p class="footer-text">
+                Chưa có tài khoản? <a href="#">Đăng ký ngay</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Xử lý sự kiện đăng nhập cơ bản
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            alert('Bạn đang thực hiện đăng nhập với: ' + email);
+        });
+    </script>
+</body>
+</html>

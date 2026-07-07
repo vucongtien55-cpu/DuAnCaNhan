@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hạn mức ngân sách - Sổ Thu Chi Cá Nhân</title>
+    
+    <!-- Font chữ & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #5842f4;
+            --success: #22c55e;
+            --bg-body: #f1f5f9;
+            --sidebar-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); }
+
+        /* --- LAYOUT --- */
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* --- SIDEBAR (Giữ nguyên đồng bộ) --- */
+        .sidebar { width: 280px; background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 24px; position: fixed; height: 100vh; display: flex; flex-direction: column; }
+        .logo-section { display: flex; align-items: center; gap: 12px; margin-bottom: 25px; }
+        .logo-box { background: var(--primary); color: white; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; }
+        .asset-card { background: #0f172a; color: white; padding: 20px; border-radius: 18px; margin-bottom: 30px; }
+        .nav-menu { list-style: none; flex-grow: 1; }
+        .nav-link { display: flex; align-items: center; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 12px; font-weight: 600; font-size: 14px; margin-bottom: 5px; }
+        .nav-link i { margin-right: 12px; width: 20px; font-size: 18px; }
+        .nav-link.active { background: var(--primary); color: white; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { margin-left: 280px; flex-grow: 1; padding: 30px 40px; }
+
+        /* Header Section */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+        .header-info h2 { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; color: var(--dark); }
+        .header-info p { color: var(--text-muted); font-size: 13px; margin-top: 5px; }
+        
+        .month-filter { display: flex; align-items: center; gap: 10px; }
+        .month-filter span { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+        .month-select { padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); background: white; font-weight: 700; outline: none; }
+
+        /* Content Grid */
+        .content-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+
+        /* Budget List (Left) */
+        .section-title { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.5px; }
+        .budget-card { background: white; padding: 25px; border-radius: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+        
+        .budget-item { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .budget-icon { width: 45px; height: 45px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; }
+        .budget-info { flex-grow: 1; }
+        .budget-info h4 { font-size: 15px; font-weight: 700; }
+        .budget-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        
+        .budget-value { text-align: right; }
+        .budget-value .total { font-size: 16px; font-weight: 800; }
+        .budget-value .remaining { font-size: 12px; color: var(--success); font-weight: 700; margin-top: 2px; }
+
+        /* Progress Bar */
+        .progress-container { width: 100%; height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; background: #cbd5e1; border-radius: 10px; width: 0%; } /* Trong ảnh là 0% */
+        .progress-text { font-size: 11px; font-weight: 800; color: var(--text-muted); }
+
+        /* Edit Input Row */
+        .edit-row { display: flex; gap: 10px; margin-top: 15px; }
+        .edit-input { flex-grow: 1; padding: 8px 15px; border-radius: 10px; border: 1px solid var(--dark); background: var(--dark); color: white; font-weight: 700; text-align: center; }
+        .btn-save { padding: 8px 20px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; }
+
+        /* Suggestions (Right) */
+        .suggestion-card { background: white; padding: 25px; border-radius: 24px; box-shadow: var(--shadow); margin-bottom: 25px; }
+        .suggestion-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #f59e0b; }
+        .suggestion-header h3 { font-size: 15px; font-weight: 800; }
+        .suggestion-intro { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+
+        .suggest-list { display: flex; flex-direction: column; gap: 12px; max-height: 350px; overflow-y: auto; padding-right: 5px; }
+        .suggest-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .suggest-label { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+        .suggest-label i { color: var(--primary); opacity: 0.6; }
+        .btn-set { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer; }
+        
+        /* Smart Allocation Card */
+        .smart-card { background: #eef2ff; padding: 25px; border-radius: 24px; display: flex; gap: 15px; }
+        .smart-card i { color: var(--primary); font-size: 20px; margin-top: 5px; }
+        .smart-card-text h4 { font-size: 14px; font-weight: 800; color: #312e81; }
+        .smart-card-text p { font-size: 12px; color: #4338ca; margin-top: 8px; line-height: 1.5; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo-box">VN</div>
+                <div class="logo-text">
+                    <h3 style="font-size: 16px;">Sổ Thu Chi</h3>
+                    <p style="font-size: 10px;">WEB 2026</p>
+                </div>
+            </div>
+            <div class="asset-card">
+                <p style="font-size: 10px; opacity: 0.7;">TỔNG TÀI SẢN TÍCH LŨY</p>
+                <h2 style="color: #fbbf24;">4.000.000 đ</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Báo cáo dòng tiền</a></li>
+                <li class="nav-item"><a href="add-transaction.html" class="nav-link"><i class="fa-solid fa-pen-to-square"></i> Ghi chép giao dịch</a></li>
+                <li class="nav-item"><a href="history.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Sổ chi tiết giao dịch</a></li>
+                <li class="nav-item"><a href="budget.html" class="nav-link active"><i class="fa-solid fa-sliders"></i> Hạn mức ngân sách</a></li>
+                <li class="nav-item"><a href="categories.html" class="nav-link"><i class="fa-solid fa-tag"></i> Quản lý danh mục</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <header class="page-header">
+                <div class="header-info">
+                    <h2><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> Hạn mức Ngân sách Tháng</h2>
+                    <p>Đặt giới hạn chi tiêu để bảo đảm kế hoạch an toàn tài chính</p>
+                </div>
+                <div class="month-filter">
+                    <span>Kỳ báo cáo:</span>
+                    <select class="month-select">
+                        <option>Tháng 06/2026</option>
+                    </select>
+                </div>
+            </header>
+
+            <div class="content-grid">
+                <!-- Danh sách ngân sách bên trái -->
+                <div class="budget-list">
+                    <h3 class="section-title">NGÂN SÁCH ĐÃ THIẾT LẬP</h3>
+
+                    <!-- Ăn uống -->
+                    <div class="budget-card">
+                        <div class="budget-item">
+                            <div class="budget-icon" style="background: #fee2e2; color: #ef4444;"><i class="fa-solid fa-utensils"></i></div>
+                            <div class="budget-info">
+                                <h4>Ăn uống</h4>
+                                <p>Đã chi tiêu: 0 đ</p>
+                            </div>
+                            <div class="budget-value">
+                                <div class="total">1.000.000 đ <i class="fa-solid fa-pencil" style="font-size: 12px; color: #cbd5e1; margin-left: 5px; cursor: pointer;"></i></div>
+                                <div class="remaining">Còn lại: 1.000.000 đ</div>
+                            </div>
+                        </div>
+                        <div class="progress-container"><div class="progress-fill"></div></div>
+                        <div class="progress-text">0% ĐÃ DÙNG</div>
+                    </div>
+
+                    <!-- Mua sắm -->
+                    <div class="budget-card">
+                        <div class="budget-item">
+                            <div class="budget-icon" style="background: #fce7f3; color: #ec4899;"><i class="fa-solid fa-bag-shopping"></i></div>
+                            <div class="budget-info">
+                                <h4>Mua sắm</h4>
+                                <p>Đã chi tiêu: 0 đ</p>
+                            </div>
+                            <div class="budget-value">
+                                <div class="total">1.000.000 đ <i class="fa-solid fa-pencil" style="font-size: 12px; color: #cbd5e1; margin-left: 5px; cursor: pointer;"></i></div>
+                                <div class="remaining">Còn lại: 1.000.000 đ</div>
+                            </div>
+                        </div>
+                        <div class="progress-container"><div class="progress-fill"></div></div>
+                        <div class="progress-text">0% ĐÃ DÙNG</div>
+                    </div>
+
+                    <!-- Giải trí -->
+                    <div class="budget-card">
+                        <div class="budget-item">
+                            <div class="budget-icon" style="background: #eef2ff; color: #6366f1;"><i class="fa-solid fa-film"></i></div>
+                            <div class="budget-info">
+                                <h4>Giải trí</h4>
+                                <p>Đã chi tiêu: 0 đ</p>
+                            </div>
+                            <div class="budget-value">
+                                <div class="total">1.000.000 đ <i class="fa-solid fa-pencil" style="font-size: 12px; color: #cbd5e1; margin-left: 5px; cursor: pointer;"></i></div>
+                                <div class="remaining">Còn lại: 1.000.000 đ</div>
+                            </div>
+                        </div>
+                        <div class="progress-container"><div class="progress-fill"></div></div>
+                        <div class="progress-text">0% ĐÃ DÙNG</div>
+                    </div>
+
+                    <!-- Sức khỏe (Trạng thái Đang Sửa) -->
+                    <div class="budget-card">
+                        <div class="budget-item">
+                            <div class="budget-icon" style="background: #ecfdf5; color: #10b981;"><i class="fa-solid fa-heart-pulse"></i></div>
+                            <div class="budget-info">
+                                <h4>Sức khỏe</h4>
+                                <p>Đã chi tiêu: 0 đ</p>
+                            </div>
+                            <div class="budget-value">
+                                <div class="remaining">Còn lại: 1.000.000 đ</div>
+                            </div>
+                        </div>
+                        <div class="progress-container"><div class="progress-fill"></div></div>
+                        <div class="progress-text">0% ĐÃ DÙNG</div>
+                        <div class="edit-row">
+                            <input type="text" class="edit-input" value="1000000">
+                            <button class="btn-save">Lưu</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Gợi ý và Thông báo -->
+                <div class="suggestions">
+                    <div class="suggestion-card">
+                        <div class="suggestion-header">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <h3>GỢI Ý LẬP NGÂN SÁCH</h3>
+                        </div>
+                        <p class="suggestion-intro">Các chuyên gia khuyến nghị nguyên tắc cấu trúc ngân sách: <b>50/30/20</b>. Thiết lập mức trần cụ thể cho từng danh mục thói quen giúp bạn dễ dàng tích lũy tài chính bền vững.</p>
+                        
+                        <div class="suggest-list">
+                            <div class="suggest-item">
+                                <span class="suggest-label"><i class="fa-solid fa-car"></i> Di chuyển</span>
+                                <button class="btn-set">+ Đặt mục tiêu</button>
+                            </div>
+                            <div class="suggest-item">
+                                <span class="suggest-label"><i class="fa-solid fa-house"></i> Nhà cửa & Dịch vụ</span>
+                                <button class="btn-set">+ Đặt mục tiêu</button>
+                            </div>
+                            <div class="suggest-item">
+                                <span class="suggest-label"><i class="fa-solid fa-graduation-cap"></i> Giáo dục</span>
+                                <button class="btn-set">+ Đặt mục tiêu</button>
+                            </div>
+                            <div class="suggest-item">
+                                <span class="suggest-label"><i class="fa-solid fa-ellipsis"></i> Khác (Chi tiêu)</span>
+                                <button class="btn-set">+ Đặt mục tiêu</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="smart-card">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <div class="smart-card-text">
+                            <h4>Phân bổ thông minh</h4>
+                            <p>Tổng hạn mức ngân sách hiện tại của bạn là: <b>4.000.000 đ</b>. Hãy cố gắng duy trì tổng mức chi tiêu dưới con số này để đảm bảo có thặng dư tích lũy đều đặn.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
