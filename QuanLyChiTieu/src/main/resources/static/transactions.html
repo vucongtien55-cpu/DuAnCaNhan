@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="vi" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sổ chi tiết giao dịch - Sổ Thu Chi Cá Nhân</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+<!-- Wrapper where state.js will inject the sidebar & layout around the inner HTML -->
+<div id="app-root">
+
+  <!-- Inside content to be wrapped -->
+  <div class="space-y-6">
+    <!-- Header title and Top links -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200/60 dark:border-slate-800/60 pb-5">
+      <div>
+        <h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white" id="transactions-header-title">Sổ chi tiết giao dịch</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="transactions-header-sub">Danh sách toàn bộ các khoản giao dịch thu chi</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Backup actions -->
+        <button onclick="exportData()" class="px-3 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-indigo-500"></i> <span id="export-btn-label">Xuất dữ liệu</span>
+        </button>
+        <label class="px-3 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-500"></i> <span id="import-btn-label">Nhập dữ liệu</span>
+          <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importData(event)" />
+        </label>
+      </div>
+    </div>
+
+    <!-- Filter and Search controls grid -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-4 shadow-sm">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Search field -->
+        <div class="relative flex items-center">
+          <div class="absolute left-3.5 text-slate-400"><i data-lucide="search" class="w-3.5 h-3.5"></i></div>
+          <input type="text" id="search-input" oninput="applyFilters()" class="w-full pl-9 pr-3.5 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-white bg-transparent" placeholder="Tìm kiếm tên giao dịch, danh mục..." />
+        </div>
+
+        <!-- Type Selector -->
+        <div>
+          <select id="filter-type" onchange="applyFilters()" class="w-full px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900">
+            <option value="ALL" id="opt-all-types">Tất cả phân loại</option>
+            <option value="EXPENSE" id="opt-expense-type">Khoản Chi (Chi phí)</option>
+            <option value="INCOME" id="opt-income-type">Khoản Thu (Thu nhập)</option>
+          </select>
+        </div>
+
+        <!-- Category Selector -->
+        <div>
+          <select id="filter-category" onchange="applyFilters()" class="w-full px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900">
+            <!-- Loaded dynamically -->
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Ledger Table Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl overflow-hidden shadow-sm">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse min-w-[700px]">
+          <thead>
+          <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
+            <th class="p-4 text-[10px] font-black uppercase tracking-wider text-slate-400" id="th-date">Ngày thực hiện</th>
+            <th class="p-4 text-[10px] font-black uppercase tracking-wider text-slate-400" id="th-title">Giao dịch / Danh mục</th>
+            <th class="p-4 text-[10px] font-black uppercase tracking-wider text-slate-400" id="th-notes">Ghi chú thêm</th>
+            <th class="p-4 text-[10px] font-black uppercase tracking-wider text-slate-400 text-right" id="th-amount">Số tiền (VND)</th>
+            <th class="p-4 text-[10px] font-black uppercase tracking-wider text-slate-400 text-center" id="th-actions">Thao tác</th>
+          </tr>
+          </thead>
+          <tbody id="ledger-rows-container">
+          <!-- Injected dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty ledger state placeholder -->
+      <div id="empty-ledger-state" class="hidden p-12 text-center flex flex-col items-center justify-center space-y-3">
+        <div class="p-4 bg-slate-100 dark:bg-slate-950 rounded-full text-slate-400 dark:text-slate-600"><i data-lucide="inbox" class="w-8 h-8"></i></div>
+        <h5 class="text-sm font-extrabold text-slate-700 dark:text-slate-300" id="empty-state-title">Chưa tìm thấy kết quả phù hợp</h5>
+        <p class="text-xs text-slate-400" id="empty-state-desc">Hãy điều chỉnh từ khóa tìm kiếm hoặc tạo thêm ghi chép mới.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="js/translations.js"></script>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/transactions.js"></script>
+</body>
+</html>

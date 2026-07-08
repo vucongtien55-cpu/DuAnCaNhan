@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="vi" class="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý danh mục - Sổ Thu Chi Cá Nhân</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+<!-- Wrapper where state.js will inject the sidebar & layout around the inner HTML -->
+<div id="app-root">
+
+    <!-- Inside content to be wrapped -->
+    <div class="space-y-6">
+        <!-- Header title -->
+        <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-5">
+            <h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white" id="cat-header-title">Quản lý danh mục thu chi</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="cat-header-sub">Tự do cá nhân hóa các nhóm phân loại tài chính theo nhu cầu</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left side: Creation form (Col span 5) -->
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm h-fit">
+                <h4 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-2 mb-4 pb-2.5 border-b border-slate-100 dark:border-slate-800/40"><i data-lucide="plus-circle" class="w-3.5 h-3.5 text-indigo-500"></i> Thêm danh mục mới</h4>
+
+                <form id="add-category-form" class="space-y-3.5">
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Tên danh mục</label>
+                        <input type="text" id="cat-name-input" required class="w-full px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-white" placeholder="Ví dụ: Nuôi thú cưng, Từ thiện..." />
+                    </div>
+
+                    <!-- Type Select -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Phân loại</label>
+                        <select id="cat-type-select" required class="w-full px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-semibold bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-slate-300">
+                            <option value="EXPENSE">Khoản Chi (Chi phí)</option>
+                            <option value="INCOME">Khoản Thu (Thu nhập)</option>
+                        </select>
+                    </div>
+
+                    <!-- Icon Selection -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Chọn biểu tượng</label>
+                        <div class="grid grid-cols-6 gap-1.5" id="icons-selection-grid">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Color Selection -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Chọn màu sắc</label>
+                        <div class="grid grid-cols-6 gap-1.5" id="colors-selection-grid">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition-all uppercase tracking-wider cursor-pointer border border-transparent">Thêm danh mục</button>
+                </form>
+            </div>
+
+            <!-- Right side: Existing category columns (Col span 7) -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Expenses List -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm">
+                    <h4 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-2 mb-4 pb-2.5 border-b border-slate-100 dark:border-slate-800/40"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-rose-500"></i> Danh mục Chi tiêu</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="expenses-cats-container">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Incomes List -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm">
+                    <h4 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-2 mb-4 pb-2.5 border-b border-slate-100 dark:border-slate-800/40"><i data-lucide="arrow-down-left" class="w-3.5 h-3.5 text-emerald-500"></i> Danh mục Thu nhập</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="incomes-cats-container">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="js/translations.js"></script>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/categories.js"></script>
+</body>
+</html>

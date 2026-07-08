@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="vi" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hạn mức ngân sách - Sổ Thu Chi Cá Nhân</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+<!-- Wrapper where state.js will inject the sidebar & layout around the inner HTML -->
+<div id="app-root">
+
+  <!-- Inside content to be wrapped -->
+  <div class="space-y-6 max-w-2xl mx-auto">
+    <!-- Header title -->
+    <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-5">
+      <h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white" id="budgets-header-title">Hạn mức ngân sách chi tiêu</h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="budgets-header-sub">Thiết lập hạn mức tối đa cho từng nhóm chi tiêu hằng tháng</p>
+    </div>
+
+    <!-- Budget setting card form -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-6 shadow-sm">
+      <form id="budgets-form" class="space-y-4">
+        <!-- Table / Container of editable category budgets -->
+        <div class="divide-y divide-slate-100 dark:divide-slate-800/40" id="budgets-inputs-container">
+          <!-- Loaded dynamically -->
+        </div>
+
+        <!-- Submit buttons -->
+        <div class="flex items-center gap-3 pt-4">
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition-all uppercase tracking-wider cursor-pointer border border-transparent" id="save-budgets-btn">Lưu tất cả hạn mức</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="js/translations.js"></script>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/budget.js"></script>
+</body>
+</html>
