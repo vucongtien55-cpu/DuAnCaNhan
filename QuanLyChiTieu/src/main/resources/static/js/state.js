@@ -11,7 +11,10 @@ const state = {
     backendSyncing: false
 };
 
-const BACKEND_API_URL = 'http://localhost:8080/api';
+// Dynamically determine the backend URL to support Vite proxying, local dev, and direct Spring Boot hosting
+const BACKEND_API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? (window.location.port === '3000' ? '/api' : 'http://localhost:8080/api')
+    : '/api';
 window.BACKEND_API_URL = BACKEND_API_URL;
 
 // Expose state globally
@@ -104,20 +107,20 @@ async function loadUserData() {
 
     // 1. Initial quick load from local storage
     try {
-        const localTxs = JSON.parse(localStorage.getItem(`chi_tieu_${email}_transactions`));
-        state.transactions = (localTxs && localTxs.length) ? localTxs : [...INITIAL_TRANSACTIONS];
+        const localTxs = localStorage.getItem(`chi_tieu_${email}_transactions`);
+        state.transactions = localTxs ? JSON.parse(localTxs) : [];
 
-        const localBuds = JSON.parse(localStorage.getItem(`chi_tieu_${email}_budgets`));
-        state.budgets = (localBuds && localBuds.length) ? localBuds : [...INITIAL_BUDGETS];
+        const localBuds = localStorage.getItem(`chi_tieu_${email}_budgets`);
+        state.budgets = localBuds ? JSON.parse(localBuds) : [];
 
-        const localExp = JSON.parse(localStorage.getItem(`chi_tieu_${email}_expense_categories`));
-        state.expenseCategories = (localExp && localExp.length) ? localExp : [...EXPENSE_CATEGORIES];
+        const localExp = localStorage.getItem(`chi_tieu_${email}_expense_categories`);
+        state.expenseCategories = localExp ? JSON.parse(localExp) : [...EXPENSE_CATEGORIES];
 
-        const localInc = JSON.parse(localStorage.getItem(`chi_tieu_${email}_income_categories`));
-        state.incomeCategories = (localInc && localInc.length) ? localInc : [...INCOME_CATEGORIES];
+        const localInc = localStorage.getItem(`chi_tieu_${email}_income_categories`);
+        state.incomeCategories = localInc ? JSON.parse(localInc) : [...INCOME_CATEGORIES];
     } catch (e) {
-        state.transactions = [...INITIAL_TRANSACTIONS];
-        state.budgets = [...INITIAL_BUDGETS];
+        state.transactions = [];
+        state.budgets = [];
         state.expenseCategories = [...EXPENSE_CATEGORIES];
         state.incomeCategories = [...INCOME_CATEGORIES];
     }
@@ -305,7 +308,8 @@ function applyTheme() {
     // Update theme toggle icons across the page if they exist
     const themeBtnSpan = document.querySelector('#theme-toggle-span');
     if (themeBtnSpan) {
-        themeBtnSpan.innerText = state.theme === 'light' ? TRANSLATIONS[state.language].themeDark : TRANSLATIONS[state.language].themeLight;
+        const lang = state.language === 'en' ? 'en' : 'vi';
+        themeBtnSpan.innerText = state.theme === 'light' ? TRANSLATIONS[lang].themeDark : TRANSLATIONS[lang].themeLight;
     }
     const themeIcon = document.querySelector('[data-theme-icon]');
     if (themeIcon) {
@@ -330,6 +334,113 @@ function logout() {
     window.location.href = 'index.html';
 }
 window.logout = logout;
+
+// Clear and reset all local and backend user data completely (bringing everything to 0)
+async function resetAllUserData() {
+    if (!state.user) return;
+    const email = state.user;
+    const isVi = state.language === 'vi';
+
+    const confirmMsg = isVi
+        ? "⚠️ CHÚ Ý: Bạn có chắc chắn muốn xóa toàn bộ dữ liệu (giao dịch, hạn mức chi tiêu, danh mục tự tạo) của tài khoản này trên cả trình duyệt và máy chủ không?\n\nThao tác này sẽ đưa tất cả số dư và biểu đồ về 0đ và không thể khôi phục lại!"
+        : "⚠️ WARNING: Are you sure you want to permanently delete all data (transactions, budget limits, custom categories) for this account on both this device and the database server?\n\nThis will reset your entire cashflow to 0 and cannot be undone!";
+
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+
+    // 1. Erase all cached variables in browser's local storage
+    localStorage.removeItem(`chi_tieu_${email}_transactions`);
+    localStorage.removeItem(`chi_tieu_${email}_budgets`);
+    localStorage.removeItem(`chi_tieu_${email}_expense_categories`);
+    localStorage.removeItem(`chi_tieu_${email}_income_categories`);
+
+    // 2. Clear global state variables in memory
+    state.transactions = [];
+    state.budgets = [];
+    state.expenseCategories = [...EXPENSE_CATEGORIES];
+    state.incomeCategories = [...INCOME_CATEGORIES];
+
+    saveUserDataLocally();
+
+    // 3. Command backend database to clear records if Spring Boot is connected
+    if (state.backendConnected) {
+        try {
+            // Clear all transactions
+            await fetch(`${BACKEND_API_URL}/transactions/clear-all?email=${encodeURIComponent(email)}`, {
+                method: 'DELETE'
+            });
+
+            // Clear budgets on server by syncing with empty list
+            await fetch(`${BACKEND_API_URL}/budgets/sync?email=${encodeURIComponent(email)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([])
+            });
+
+            // Clear custom categories on server by syncing with empty list
+            await fetch(`${BACKEND_API_URL}/categories/sync?email=${encodeURIComponent(email)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([])
+            });
+
+            showToast(isVi ? "Đã xóa toàn bộ dữ liệu sạch sẽ trên máy chủ!" : "Successfully cleared all server database records!");
+        } catch (err) {
+            console.error("Backend reset database failed:", err);
+            showToast(isVi ? "Đã xóa dữ liệu cục bộ, nhưng đồng bộ với máy chủ thất bại!" : "Cleared local memory, but server synchronization failed!", "error");
+        }
+    } else {
+        showToast(isVi ? "Đã xóa sạch toàn bộ dữ liệu cục bộ!" : "Local cache cleared successfully!");
+    }
+
+    // 4. Instantly refresh whatever page layout is currently active
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof applyFilters === 'function') applyFilters();
+    if (typeof populateCategoryFilter === 'function') populateCategoryFilter();
+    if (typeof renderBudgetInputs === 'function') renderBudgetInputs();
+    if (typeof renderCategoriesList === 'function') renderCategoriesList();
+    if (typeof populateCategories === 'function') populateCategories();
+}
+window.resetAllUserData = resetAllUserData;
+
+// Restore standard demo preset data and sync to database server
+async function restoreAllDemoData() {
+    if (!state.user) return;
+    const email = state.user;
+    const isVi = state.language === 'vi';
+
+    // 1. Populate demo presets directly to local storage cache
+    localStorage.setItem(`chi_tieu_${email}_transactions`, JSON.stringify(INITIAL_TRANSACTIONS));
+    localStorage.setItem(`chi_tieu_${email}_budgets`, JSON.stringify(INITIAL_BUDGETS));
+    localStorage.setItem(`chi_tieu_${email}_expense_categories`, JSON.stringify(EXPENSE_CATEGORIES));
+    localStorage.setItem(`chi_tieu_${email}_income_categories`, JSON.stringify(INCOME_CATEGORIES));
+
+    // 2. Read back from cache to global memory
+    await loadUserData();
+
+    // 3. Sync up to PostgreSQL if Spring Boot backend is connected
+    if (state.backendConnected) {
+        try {
+            await saveUserData();
+            showToast(isVi ? "Đã khôi phục và đồng bộ dữ liệu mẫu lên máy chủ!" : "Demo data successfully loaded and synchronized to server database!");
+        } catch (err) {
+            console.error("Demo sync failed:", err);
+            showToast(isVi ? "Đã khôi phục dữ liệu mẫu cục bộ!" : "Demo data loaded in local memory!");
+        }
+    } else {
+        showToast(isVi ? "Đã khôi phục dữ liệu mẫu cục bộ!" : "Demo data loaded in local memory!");
+    }
+
+    // 4. Force trigger immediate visual updates
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof applyFilters === 'function') applyFilters();
+    if (typeof populateCategoryFilter === 'function') populateCategoryFilter();
+    if (typeof renderBudgetInputs === 'function') renderBudgetInputs();
+    if (typeof renderCategoriesList === 'function') renderCategoriesList();
+    if (typeof populateCategories === 'function') populateCategories();
+}
+window.restoreAllDemoData = restoreAllDemoData;
 
 // Live System Clock
 function initClock() {
@@ -380,17 +491,18 @@ function injectSharedLayout(activePageId) {
     const wrapper = document.getElementById('app-root');
     if (!wrapper) return;
 
-    const lang = state.language;
+    const lang = state.language === 'en' ? 'en' : 'vi';
     const t = TRANSLATIONS[lang];
 
     // Get main workspace content first
     const mainContentHTML = wrapper.innerHTML;
 
     // Render full Layout structure
-    wrapper.className = "min-h-screen flex flex-col md:flex-row w-full";
+    document.body.classList.add('md:overflow-hidden');
+    wrapper.className = "min-h-screen md:h-screen flex flex-col md:flex-row w-full md:overflow-hidden";
     wrapper.innerHTML = `
     <!-- Sidebar Navigation -->
-    <aside class="w-full md:w-60 bg-[#121318] text-slate-200 flex-shrink-0 flex flex-col justify-between border-r border-[#1c1e24] font-sans">
+    <aside class="w-full md:w-60 bg-[#121318] text-slate-200 flex-shrink-0 flex flex-col justify-between border-r border-[#1c1e24] font-sans md:h-full md:overflow-y-auto custom-scrollbar">
       <div>
         <!-- Sidebar Header -->
         <div class="p-5 border-b border-[#1a1b22] flex items-center justify-between">
@@ -445,16 +557,17 @@ function injectSharedLayout(activePageId) {
       <!-- Footer Settings and logout -->
       <div class="p-4 border-t border-[#1a1b22] space-y-3">
         <div class="flex items-center gap-2">
-          <button onclick="toggleTheme()" class="flex-grow py-2 border border-[#1e202b] hover:border-[#272a39] hover:bg-[#1a1b23] rounded-lg text-[10px] font-bold text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all">
+          <button onclick="toggleTheme()" class="flex-grow py-2 border border-[#1e202b] hover:border-[#272a39] hover:bg-[#1a1b23] rounded-lg text-[10px] font-bold text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer">
             <i data-theme-icon data-lucide="${state.theme === 'light' ? 'moon' : 'sun'}" class="w-3.5 h-3.5"></i>
             <span id="theme-toggle-span">${state.theme === 'light' ? t.themeDark : t.themeLight}</span>
           </button>
-          <button onclick="toggleLanguage()" class="flex-grow py-2 border border-[#1e202b] hover:border-[#272a39] hover:bg-[#1a1b23] rounded-lg text-[10px] font-bold text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all">
+          <button onclick="toggleLanguage()" class="flex-grow py-2 border border-[#1e202b] hover:border-[#272a39] hover:bg-[#1a1b23] rounded-lg text-[10px] font-bold text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer">
             <i data-lucide="languages" class="w-3.5 h-3.5"></i>
             <span>${state.language.toUpperCase()}</span>
           </button>
         </div>
-        <button onclick="logout()" class="w-full py-2 bg-rose-950/10 hover:bg-rose-950/20 text-rose-400 border border-rose-950/30 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
+
+        <button onclick="logout()" class="w-full py-2 bg-rose-950/10 hover:bg-rose-950/20 text-rose-400 border border-rose-950/30 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer">
           <i data-lucide="log-out" class="w-3.5 h-3.5"></i> ${t.logoutButton}
         </button>
       </div>

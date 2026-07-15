@@ -89,7 +89,7 @@ function renderBudgetInputs() {
         </div>
         <div>
           <h5 class="text-xs font-extrabold text-slate-800 dark:text-white">${cat.name}</h5>
-          <span class="text-[9px] font-bold text-slate-400">Danh mục Chi phí</span>
+          <span class="text-[9px] font-bold text-slate-400">${state.language === 'vi' ? 'Danh mục Chi phí' : 'Expense Category'}</span>
         </div>
       </div>
       
