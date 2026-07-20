@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hạn mức ngân sách - Sổ Thu Chi Cá Nhân</title>
-  <!-- Google Fonts -->
+  <!-- Phông chữ Google -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <!-- Tailwind Play CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,26 +26,26 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
-<!-- Wrapper where state.js will inject the sidebar & layout around the inner HTML -->
+<!-- Khu vực state.js sẽ chèn sidebar và bố cục bao quanh nội dung -->
 <div id="app-root">
 
-  <!-- Inside content to be wrapped -->
+  <!-- Nội dung bên trong sẽ được bao bọc bởi layout -->
   <div class="space-y-6 max-w-2xl mx-auto">
-    <!-- Header title -->
+    <!-- Tiêu đề -->
     <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-5">
       <h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white" id="budgets-header-title">Hạn mức ngân sách chi tiêu</h2>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="budgets-header-sub">Thiết lập hạn mức tối đa cho từng nhóm chi tiêu hằng tháng</p>
     </div>
 
-    <!-- Budget setting card form -->
+    <!-- Thẻ chứa biểu mẫu thiết lập ngân sách -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-6 shadow-sm">
       <form id="budgets-form" class="space-y-4">
-        <!-- Table / Container of editable category budgets -->
+        <!-- Bảng / Khu vực chứa các hạn mức của từng danh mục (được chỉnh sửa) -->
         <div class="divide-y divide-slate-100 dark:divide-slate-800/40" id="budgets-inputs-container">
-          <!-- Loaded dynamically -->
+          <!-- Dữ liệu sẽ được tải động -->
         </div>
 
-        <!-- Submit buttons -->
+        <!-- Nút xác nhận -->
         <div class="flex items-center gap-3 pt-4">
           <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition-all uppercase tracking-wider cursor-pointer border border-transparent" id="save-budgets-btn">Lưu tất cả hạn mức</button>
         </div>
@@ -55,7 +55,7 @@
 
 </div>
 
-<!-- SCRIPTS -->
+<!-- CÁC TỆP SCRIPT -->
 <script src="js/translations.js"></script>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
