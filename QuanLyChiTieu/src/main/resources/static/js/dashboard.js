@@ -211,6 +211,39 @@ function renderDashboard() {
     document.getElementById('income-desc-label').innerText = lang === 'vi' ? 'Từ giao dịch thực tế' : 'From actual sources';
     document.getElementById('expense-desc-label').innerText = lang === 'vi' ? 'Đã thanh toán thực tế' : 'Actually spent';
 
+    const pieHeading = document.getElementById('pie-chart-heading');
+    if (pieHeading) pieHeading.innerHTML = `<i data-lucide="pie-chart" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Cơ cấu các khoản chi tiêu' : 'Expense Structure Breakdown'}`;
+
+    const budgetHeading = document.getElementById('budget-tracking-heading');
+    if (budgetHeading) budgetHeading.innerHTML = `<i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-500"></i> ${lang === 'vi' ? 'Theo dõi hạn mức ngân sách' : 'Monthly Budget Tracking'}`;
+
+    const budgetCustomize = document.getElementById('budget-customize-link');
+    if (budgetCustomize) budgetCustomize.innerText = lang === 'vi' ? 'Tùy chỉnh' : 'Customize';
+
+    const dailySpendingHeading = document.getElementById('daily-spending-heading');
+    if (dailySpendingHeading) dailySpendingHeading.innerHTML = `<i data-lucide="calendar-days" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Danh mục chi tiêu theo ngày' : 'Daily Spending Breakdown'}`;
+
+    const dailySpendingSub = document.getElementById('daily-spending-sub');
+    if (dailySpendingSub) dailySpendingSub.innerText = lang === 'vi' ? 'Tổng kết chi tiết theo từng ngày' : 'Summary categorized by day';
+
+    const recentHeading = document.getElementById('recent-tx-heading');
+    if (recentHeading) recentHeading.innerHTML = `<i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Giao dịch gần đây' : 'Recent Transactions'}`;
+
+    const viewAllLink = document.getElementById('view-all-ledger-link');
+    if (viewAllLink) viewAllLink.innerHTML = `${lang === 'vi' ? 'Tất cả sổ' : 'Detailed ledger'} <i data-lucide="chevron-right" class="w-3 h-3"></i>`;
+
+    const quickHeading = document.getElementById('quick-actions-heading');
+    if (quickHeading) quickHeading.innerHTML = `<i data-lucide="settings" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Thao tác nhanh' : 'Quick Controls'}`;
+
+    const quickDesc = document.getElementById('quick-actions-desc');
+    if (quickDesc) quickDesc.innerText = lang === 'vi' ? 'Bạn có thể khôi phục nhanh bộ dữ liệu thu chi mẫu ban đầu để tham khảo và trải nghiệm cách hệ thống phân tích báo cáo.' : 'You can quickly restore the standard sample presets to see how the cashflow analytics dashboard visualizes information.';
+
+    const btnNewRecord = document.getElementById('btn-new-record');
+    if (btnNewRecord) btnNewRecord.innerHTML = `<i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> ${lang === 'vi' ? 'Tạo ghi chép mới' : 'Record new transaction'}`;
+
+    const btnRestoreDemo = document.getElementById('btn-restore-demo');
+    if (btnRestoreDemo) btnRestoreDemo.innerHTML = `<i data-lucide="refresh-cw" class="w-3 h-3 text-indigo-500 animate-hover"></i> ${lang === 'vi' ? 'Khôi phục mẫu dữ liệu' : 'Reset preset demo'}`;
+
     // Filter transactions based on date if filter is 'month', 'custom_range', or specific date
     let list = state.transactions || [];
 
@@ -305,7 +338,11 @@ function renderDashboard() {
     const expenseMap = {};
     list.forEach(tx => {
         if (tx.type === 'EXPENSE') {
-            expenseMap[tx.category] = (expenseMap[tx.category] || 0) + Number(tx.amount);
+            if (tx.type === 'EXPENSE' && tx.category !== 'Savings') {
+                expenseMap[tx.category] =
+                    (expenseMap[tx.category] || 0)
+                    + Number(tx.amount);
+            }
         }
     });
 
@@ -314,6 +351,9 @@ function renderDashboard() {
 
     // Render Budgets Progress meters
     renderBudgetMeters(expenseMap);
+
+    // Render Daily Spending Breakdown
+    renderDailySpendingBreakdown(list);
 
     // Render Recent Transactions
     renderRecentTransactionsList(list.slice(0, 5));
@@ -363,7 +403,7 @@ function renderCategoryBreakdown(expenseMap, totalExpense) {
 
     sortedCats.forEach(item => {
         chartData.push(item.amount);
-        chartLabels.push(item.name);
+        chartLabels.push(translateCategory(item.name));
         chartColors.push(item.color);
 
         // Create side detailed label
@@ -372,7 +412,7 @@ function renderCategoryBreakdown(expenseMap, totalExpense) {
         labelRow.innerHTML = `
       <div class="flex items-center gap-2.5">
         <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${item.color}"></span>
-        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">${item.name}</span>
+        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">${translateCategory(item.name)}</span>
       </div>
       <div class="text-right">
         <span class="text-xs font-extrabold font-mono text-slate-800 dark:text-white">${formatVND(item.amount)}</span>
@@ -452,7 +492,7 @@ function renderBudgetMeters(expenseMap) {
       <div class="flex justify-between items-center text-[11px] font-bold">
         <span class="text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full" style="background-color: ${getCategoryColor(b.category)}"></span>
-          ${b.category}
+          ${translateCategory(b.category)}
         </span>
         <span class="${isExceeded ? 'text-rose-500 font-extrabold' : 'text-slate-400'} font-mono">
           ${formatVND(spent)} / ${formatVND(limit)}
@@ -510,9 +550,9 @@ function renderRecentTransactionsList(transactions) {
           <i data-lucide="${icon}" class="w-5 h-5"></i>
         </div>
         <div class="min-w-0">
-          <h5 class="text-xs font-extrabold text-slate-800 dark:text-white truncate">${tx.title}</h5>
+          <h5 class="text-xs font-extrabold text-slate-800 dark:text-white truncate">${translateUserText(tx.title)}</h5>
           <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md" style="background-color: ${color}20; color: ${color}">${tx.category}</span>
+            <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md" style="background-color: ${color}20; color: ${color}">${translateCategory(tx.category)}</span>
             <span class="text-[10px] font-semibold text-slate-400">${dateFormatted}</span>
           </div>
         </div>
@@ -521,11 +561,117 @@ function renderRecentTransactionsList(transactions) {
         <span class="text-xs font-black font-mono ${isIncome ? 'text-emerald-500' : 'text-slate-800 dark:text-white'}">
           ${isIncome ? '+' : '-'}${formatVND(tx.amount)}
         </span>
-        ${tx.notes ? `<span class="block text-[9px] font-bold text-slate-400 mt-0.5 max-w-[120px] truncate">${tx.notes}</span>` : ''}
+        ${tx.notes ? `<span class="block text-[9px] font-bold text-slate-400 mt-0.5 max-w-[120px] truncate">${translateUserText(tx.notes)}</span>` : ''}
       </div>
     `;
 
         container.appendChild(item);
+    });
+
+    if (window.lucide) window.lucide.createIcons();
+}
+
+function renderDailySpendingBreakdown(allTransactions) {
+    const container = document.getElementById('daily-spending-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const lang = state.language;
+    const isVi = lang === 'vi';
+
+    // Filter for expense transactions only
+    const expenses = allTransactions.filter(tx => tx.type === 'EXPENSE');
+
+    if (expenses.length === 0) {
+        container.className = "col-span-1 md:col-span-2 lg:col-span-3 text-center py-8 text-xs font-bold text-slate-400";
+        container.innerHTML = isVi
+            ? 'Chưa có ghi chép chi tiêu nào để phân tích theo ngày.'
+            : 'No expense records found to generate daily breakdown.';
+        return;
+    }
+
+    // Restore container grid styles
+    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
+
+    // Group by date (YYYY-MM-DD)
+    const groupedByDate = {};
+    expenses.forEach(tx => {
+        const d = tx.date;
+        if (!groupedByDate[d]) {
+            groupedByDate[d] = {
+                total: 0,
+                categories: {}
+            };
+        }
+        groupedByDate[d].total += Number(tx.amount);
+        groupedByDate[d].categories[tx.category] = (groupedByDate[d].categories[tx.category] || 0) + Number(tx.amount);
+    });
+
+    // Sort dates descending (newest first)
+    const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+
+    // Take at most 6 days to keep dashboard clean
+    const displayDates = sortedDates.slice(0, 6);
+
+    displayDates.forEach(dateStr => {
+        const data = groupedByDate[dateStr];
+
+        // Format date beautifully
+        const dObj = new Date(dateStr);
+        const dateFormatted = dObj.toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/40 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-all";
+
+        // Header of date card
+        let cardContent = `
+      <div>
+        <div class="flex justify-between items-center pb-2.5 mb-3 border-b border-slate-100 dark:border-slate-800/40">
+          <span class="text-[11px] font-black text-slate-700 dark:text-slate-300 capitalize">${dateFormatted}</span>
+          <span class="text-xs font-black text-rose-500 font-mono">${formatVND(data.total)}</span>
+        </div>
+        <div class="space-y-2">
+    `;
+
+        // Render category rows for this date
+        Object.keys(data.categories).forEach(cat => {
+            const amt = data.categories[cat];
+            const percent = data.total > 0 ? Math.round((amt / data.total) * 100) : 0;
+            const color = getCategoryColor(cat);
+            const icon = getCategoryIcon(cat);
+
+            cardContent += `
+        <div class="flex items-center justify-between text-[11px] font-bold">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="w-5 h-5 rounded-md flex items-center justify-center text-white" style="background-color: ${color}">
+              <i data-lucide="${icon}" class="w-3 h-3"></i>
+            </span>
+            <span class="text-slate-600 dark:text-slate-300 truncate">${translateCategory(cat)}</span>
+          </div>
+          <div class="text-right flex-shrink-0 font-mono">
+            <span class="text-slate-700 dark:text-slate-300">${formatVND(amt)}</span>
+            <span class="text-[9px] text-slate-400 block">${percent}%</span>
+          </div>
+        </div>
+      `;
+        });
+
+        cardContent += `
+        </div>
+      </div>
+      <div class="mt-4 pt-2.5 border-t border-slate-100 dark:border-slate-800/40 flex justify-between items-center text-[10px] text-slate-400 font-bold">
+        <span>${isVi ? 'Tổng chi tiêu ngày' : 'Total spent on day'}</span>
+        <span class="text-rose-500 dark:text-rose-400 font-black font-mono">${formatVND(data.total)}</span>
+      </div>
+    `;
+
+        card.innerHTML = cardContent;
+        container.appendChild(card);
     });
 
     if (window.lucide) window.lucide.createIcons();

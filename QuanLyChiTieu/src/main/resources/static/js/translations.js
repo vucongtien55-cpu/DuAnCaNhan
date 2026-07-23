@@ -47,6 +47,7 @@ const TRANSLATIONS = {
     recordTab: 'Ghi chép giao dịch',
     transactionListTab: 'Sổ chi tiết giao dịch',
     budgetTab: 'Hạn mức ngân sách',
+    categoriesTab: 'Danh mục',
     savingsTab: 'Hũ tiết kiệm',
     activeTabIndicator: 'Live',
     addRecordButton: 'Ghi chép mới',
@@ -134,6 +135,7 @@ const TRANSLATIONS = {
     recordTab: 'Record Keeping',
     transactionListTab: 'Detailed Transaction Ledger',
     budgetTab: 'Budget Limits',
+    categoriesTab: 'Categories',
     savingsTab: 'Savings Jars',
     activeTabIndicator: 'Live',
     addRecordButton: 'New Record',
@@ -176,4 +178,221 @@ const TRANSLATIONS = {
   }
 };
 
+// 2. Category translations dictionary
+const CATEGORY_TRANSLATIONS = {
+  vi: {
+    'Ăn uống': 'Ăn uống',
+    'Di chuyển': 'Di chuyển',
+    'Mua sắm': 'Mua sắm',
+    'Nhà cửa': 'Nhà cửa',
+    'Nhà cửa & Dịch vụ': 'Nhà cửa & Dịch vụ',
+    'Giải trí': 'Giải trí',
+    'Sức khỏe': 'Sức khỏe',
+    'Giáo dục': 'Giáo dục',
+    'Quà tặng': 'Quà tặng',
+    'Lương': 'Lương',
+    'Lương hằng tháng': 'Lương hằng tháng',
+    'Làm thêm (Freelance)': 'Làm thêm (Freelance)',
+    'Kinh doanh': 'Kinh doanh',
+    'Đầu tư': 'Đầu tư',
+    'Quà tặng, Thưởng': 'Quà tặng, Thưởng',
+    'Khác': 'Khác',
+    'Khác (Chi tiêu)': 'Khác (Chi tiêu)',
+    'Khác (Thu nhập)': 'Khác (Thu nhập)',
+
+    'Food & Dining': 'Ăn uống',
+    'Transport': 'Di chuyển',
+    'Shopping': 'Mua sắm',
+    'Housing': 'Nhà cửa',
+    'Housing & Utilities': 'Nhà cửa & Dịch vụ',
+    'Entertainment': 'Giải trí',
+    'Medical & Health': 'Sức khỏe',
+    'Health & Medical': 'Sức khỏe',
+    'Education': 'Giáo dục',
+    'Gifts & Donations': 'Quà tặng',
+    'Salary': 'Lương',
+    'Monthly Salary': 'Lương hằng tháng',
+    'Freelance / Side Hustle': 'Làm thêm (Freelance)',
+    'Business': 'Kinh doanh',
+    'Investment': 'Đầu tư',
+    'Gifts & Bonuses': 'Quà tặng, Thưởng',
+    'Others': 'Khác',
+    'Others (Expense)': 'Khác (Chi tiêu)',
+    'Others (Income)': 'Khác (Thu nhập)'
+  },
+  en: {
+    'Ăn uống': 'Food & Dining',
+    'Di chuyển': 'Transport',
+    'Mua sắm': 'Shopping',
+    'Nhà cửa': 'Housing',
+    'Nhà cửa & Dịch vụ': 'Housing & Utilities',
+    'Giải trí': 'Entertainment',
+    'Sức khỏe': 'Health & Medical',
+    'Giáo dục': 'Education',
+    'Quà tặng': 'Gifts & Donations',
+    'Lương': 'Salary',
+    'Lương hằng tháng': 'Monthly Salary',
+    'Làm thêm (Freelance)': 'Freelance / Side Hustle',
+    'Kinh doanh': 'Business',
+    'Đầu tư': 'Investment',
+    'Quà tặng, Thưởng': 'Gifts & Bonuses',
+    'Khác': 'Others',
+    'Khác (Chi tiêu)': 'Others (Expense)',
+    'Khác (Thu nhập)': 'Others (Income)',
+
+    'Food & Dining': 'Food & Dining',
+    'Transport': 'Transport',
+    'Shopping': 'Shopping',
+    'Housing': 'Housing',
+    'Housing & Utilities': 'Housing & Utilities',
+    'Entertainment': 'Entertainment',
+    'Medical & Health': 'Health & Medical',
+    'Health & Medical': 'Health & Medical',
+    'Education': 'Education',
+    'Gifts & Donations': 'Gifts & Donations',
+    'Salary': 'Salary',
+    'Monthly Salary': 'Monthly Salary',
+    'Freelance / Side Hustle': 'Freelance / Side Hustle',
+    'Business': 'Business',
+    'Investment': 'Investment',
+    'Gifts & Bonuses': 'Gifts & Bonuses',
+    'Others': 'Others',
+    'Others (Expense)': 'Others (Expense)',
+    'Others (Income)': 'Others (Income)'
+  }
+};
+
+const USER_TEXT_TRANSLATIONS = {
+  // Common preset / user-entered titles & notes
+  'Nhận lương tháng 6': 'June Salary Payout',
+  'Lương công ty chính thức': 'Official Corporate Salary',
+  'Trả tiền thuê nhà & điện nước': 'House Rent & Utilities Payment',
+  'Tiền nhà tháng 6': 'Rent for June',
+  'Dự án website thiết kế': 'Website Design Project',
+  'Thiết kế UI/UX Landing Page': 'UI/UX Landing Page Design',
+  'Mua thực phẩm tuần mới': 'Weekly Grocery Shopping',
+  'Đi siêu thị Winmart': 'Winmart Supermarket Shopping',
+  'Đăng ký tập Gym 3 tháng': '3-Month Gym Membership',
+  'Phòng gym Fit24': 'Fit24 Gym Center',
+  'Đổ xăng xe máy': 'Motorbike Refueling',
+  'Đầy bình xăng xe Lead': 'Full tank for Honda Lead',
+  'Ăn tối cùng gia đình': 'Family Dinner Night',
+  'Ăn lẩu Haidilao': 'Haidilao Hotpot Feast',
+  'Mua sách kỹ năng mềm': 'Self-Help Books Shopping',
+  'Sách Nguyên Lý 80/20 và Đắc Nhân Tâm': '80/20 Principle and How to Win Friends books',
+  'Tiền lãi đầu tư cổ phiếu': 'Stock Investment Dividend',
+  'Cổ tức nhận quý 2': 'Q2 Dividend Payout',
+  'Mua quần áo đi đám cưới': 'Wedding Clothes Shopping',
+  'Mua vest nhẹ và giày tây': 'Light blazer and leather shoes',
+  'Xem phim cuối tuần rạp CGV': 'CGV Weekend Movie Night',
+  'Vé xem phim + bỏng nước': 'Movie tickets + popcorn bundle',
+  'Đăng ký gói Netflix': 'Netflix Premium Subscription',
+  'Gia hạn gói Ultra HD tháng này': 'Renew Ultra HD subscription',
+  'Đặt Highlands Coffee': 'Highlands Coffee Order',
+  'Trà sen vàng và freeze trà xanh': 'Golden lotus tea & green tea freeze',
+
+  // Savings Jars
+  'Quỹ khẩn cấp (Emergency)': 'Emergency Fund',
+  'Mua Macbook Pro M4': 'Buy Macbook Pro M4',
+  'Đi du lịch Nhật Bản': 'Japan Trip Fund',
+  'Mua ô tô': 'Buy a Car',
+  'Mua oto': 'Buy a Car',
+  'Mua xe': 'Buy a Car',
+  'Mua xe hơi': 'Buy a Car',
+  'Mua oto con': 'Buy a Car',
+  'Mua ô tô con': 'Buy a Car',
+  'Mua xe ô tô': 'Buy a Car',
+  'Mua xe oto': 'Buy a Car'
+};
+
+function translateCategory(catName) {
+  if (!catName) return '';
+  const lang = (window.state && window.state.language) || localStorage.getItem('chi_tieu_lang') || 'vi';
+  if (CATEGORY_TRANSLATIONS[lang] && CATEGORY_TRANSLATIONS[lang][catName]) {
+    return CATEGORY_TRANSLATIONS[lang][catName];
+  }
+  return catName; // Fallback if custom category
+}
+
+function translateUserText(text) {
+  if (!text) return '';
+  const lang = (window.state && window.state.language) || localStorage.getItem('chi_tieu_lang') || 'vi';
+  if (lang === 'vi') return text; // If Vietnamese, keep original
+
+  // Exact match first
+  if (USER_TEXT_TRANSLATIONS[text]) {
+    return USER_TEXT_TRANSLATIONS[text];
+  }
+
+  // Try substring or word translation if possible, or case-insensitive exact match
+  const lowerText = text.toLowerCase().trim();
+  for (const [key, val] of Object.entries(USER_TEXT_TRANSLATIONS)) {
+    if (key.toLowerCase() === lowerText) {
+      return val;
+    }
+  }
+
+  // Fallback: search and replace common Vietnamese words
+  let translated = text;
+  const wordReplacements = {
+    'mua ô tô': 'buy a car',
+    'mua oto': 'buy a car',
+    'mua xe hơi': 'buy a car',
+    'mua xe': 'buy a car',
+    'ô tô': 'car',
+    'oto': 'car',
+    'xe hơi': 'car',
+    'mua': 'buy',
+    'lương': 'salary',
+    'tiền thuê nhà': 'house rent',
+    'tiền điện': 'electricity bill',
+    'tiền nước': 'water bill',
+    'tiền nhà': 'rent',
+    'ăn uống': 'dining',
+    'trà sữa': 'boba tea',
+    'cà phê': 'coffee',
+    'mua sắm': 'shopping',
+    'đi siêu thị': 'supermarket',
+    'siêu thị': 'supermarket',
+    'xăng': 'gas',
+    'xe máy': 'motorbike',
+    'du lịch': 'travel',
+    'học phí': 'tuition',
+    'sách': 'books',
+    'tiền lãi': 'interest / dividends',
+    'đầu tư': 'investment',
+    'quà tặng': 'gift',
+    'quà': 'gift',
+    'thưởng': 'bonus',
+    'quần áo': 'clothes',
+    'phim': 'movie',
+    'ăn tối': 'dinner',
+    'ăn trưa': 'lunch',
+    'ăn sáng': 'breakfast',
+    'phòng gym': 'gym',
+    'tập gym': 'gym training',
+    'thiết kế': 'design',
+    'dự án': 'project',
+    'cổ tức': 'dividend',
+    'đám cưới': 'wedding'
+  };
+
+  for (const [key, val] of Object.entries(wordReplacements)) {
+    const regex = new RegExp(key, 'gi');
+    if (regex.test(translated)) {
+      translated = translated.replace(regex, val);
+    }
+  }
+
+  // Capitalize first letter if the original had a capital first letter
+  if (text && text[0] === text[0].toUpperCase() && translated.length > 0) {
+    translated = translated.charAt(0).toUpperCase() + translated.slice(1);
+  }
+
+  return translated;
+}
+
 window.TRANSLATIONS = TRANSLATIONS;
+window.CATEGORY_TRANSLATIONS = CATEGORY_TRANSLATIONS;
+window.translateCategory = translateCategory;
+window.translateUserText = translateUserText;

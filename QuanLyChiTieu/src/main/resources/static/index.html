@@ -24,7 +24,6 @@
   <link rel="stylesheet" href="css/style.css" />
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
@@ -83,7 +82,9 @@
         </div>
 
         <div class="grid grid-cols-2 gap-3">
-          <div id="google-signin-button" class="flex items-center justify-center min-h-[42px]"></div>
+          <button onclick="simulatedSocialLogin('Google')" class="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+            <i data-lucide="chrome" class="w-4 h-4 text-rose-500"></i> <span id="google-label">Google</span>
+          </button>
           <a href="phone-login.html" class="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-xs font-bold text-slate-600 dark:text-slate-300">
             <i data-lucide="smartphone" class="w-4 h-4 text-indigo-500"></i> <span id="phone-label">Số điện thoại</span>
           </a>
@@ -97,9 +98,9 @@
 </div>
 
 <!-- SCRIPTS -->
-<script src="js/translations.js"></script>
-<script src="js/data.js"></script>
-<script src="js/state.js"></script>
-<script src="js/index.js"></script>
+<script src="js/translations.js?v=2026_01"></script>
+<script src="js/data.js?v=2026_01"></script>
+<script src="js/state.js?v=2026_01"></script>
+<script src="js/index.js?v=2026_01"></script>
 </body>
 </html>

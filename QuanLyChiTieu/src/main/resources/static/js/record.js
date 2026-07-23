@@ -32,7 +32,7 @@ function populateCategories() {
     categoriesList.forEach(cat => {
         const option = document.createElement('option');
         option.value = cat.name;
-        option.innerText = cat.name;
+        option.innerText = translateCategory(cat.name);
         select.appendChild(option);
     });
 }

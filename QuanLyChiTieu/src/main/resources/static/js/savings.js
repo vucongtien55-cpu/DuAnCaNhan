@@ -63,6 +63,16 @@ function translateSavingsLabels(lang, t) {
   const subEl = document.getElementById('savings-header-sub');
   if (subEl) subEl.innerText = isVi ? 'Chia sẻ nguồn tiền nhàn rỗi nuôi heo đất hoàn thành các ước mơ lớn' : 'Distribute extra funds to target goals and fulfill big dreams';
 
+  // New overall stats labels
+  const totalSavedLbl = document.getElementById('lbl-total-saved');
+  if (totalSavedLbl) totalSavedLbl.innerText = isVi ? 'Đã tích lũy' : 'Accumulated';
+
+  const totalTargetLbl = document.getElementById('lbl-total-target');
+  if (totalTargetLbl) totalTargetLbl.innerText = isVi ? 'Tổng mục tiêu' : 'Total Target';
+
+  const completionRateLbl = document.getElementById('lbl-completion-rate');
+  if (completionRateLbl) completionRateLbl.innerText = isVi ? 'Tỷ lệ hoàn thành' : 'Completion Rate';
+
   // Stats labels
   const curLbl = document.getElementById('global-current-lbl');
   if (curLbl) curLbl.innerText = isVi ? 'Tổng số tiền hiện có trong các hũ' : 'Total money currently accumulated';
@@ -203,7 +213,7 @@ function renderSavingsJars() {
                 <i data-lucide="${jar.icon || 'piggy-bank'}" class="w-5 h-5"></i>
               </div>
               <div class="min-w-0">
-                <h4 class="text-xs font-extrabold text-slate-800 dark:text-white truncate" title="${jar.name}">${jar.name}</h4>
+                <h4 class="text-xs font-extrabold text-slate-800 dark:text-white truncate" title="${translateUserText(jar.name)}">${translateUserText(jar.name)}</h4>
                 <span class="text-[9px] font-bold ${achieved ? 'text-emerald-500' : 'text-slate-400'}">
                   ${achieved ? (isVi ? '🎉 Đã hoàn thành!' : '🎉 Target Reached!') : (isVi ? 'Đang nuôi hũ' : 'Growing progress')}
                 </span>
@@ -420,8 +430,8 @@ async function deleteSavingsJar(id) {
 
   const isVi = state.language === 'vi';
   const confirmMsg = isVi
-    ? `Bạn có chắc chắn muốn xóa hũ tiết kiệm "${jar.name}"?\\n\\nHành động này không thể hoàn tác!`
-    : `Are you sure you want to delete the savings goal "${jar.name}"?\\n\\nThis cannot be undone!`;
+      ? `Bạn có chắc chắn muốn xóa hũ tiết kiệm "${jar.name}"?\n\nHành động này không thể hoàn tác!`
+      : `Are you sure you want to delete the savings goal "${translateUserText(jar.name)}"?\n\nThis cannot be undone!`;
 
   if (!confirm(confirmMsg)) return;
 
@@ -467,19 +477,21 @@ function openActionModal(id, actionType) {
   const modalLblAmt = document.getElementById('modal-lbl-amt');
 
   if (actionType === 'deposit') {
-    titleEl.innerText = isVi ? `Nạp Tiền: ${jar.name}` : `Deposit Money: ${jar.name}`;
+
+    titleEl.innerText = isVi ? `Nạp Tiền: ${jar.name}` : `Deposit Money: ${translateUserText(jar.name)}`;
     descEl.innerText = isVi
-      ? `Gửi thêm tiền nhàn rỗi tích lũy của bạn vào hũ. (Hiện có: ${formatVND(jar.currentAmount)})`
-      : `Add extra funds to grow this savings goal. (Current: ${formatVND(jar.currentAmount)})`;
+        ? `Gửi thêm tiền nhàn rỗi tích lũy của bạn vào hũ. (Hiện có: ${formatVND(jar.currentAmount)})`
+        : `Add extra funds to grow this savings goal. (Current: ${formatVND(jar.currentAmount)})`;
     submitBtn.innerText = isVi ? 'Gửi tiết kiệm' : 'Deposit Cash';
     submitBtn.className = 'w-1/2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold transition-all uppercase tracking-wider shadow-sm';
+
     if (modalIcon) modalIcon.setAttribute('data-lucide', 'arrow-down-left');
     if (modalLblAmt) modalLblAmt.innerText = isVi ? 'Số tiền gửi tiết kiệm (VND)' : 'Amount to Save (VND)';
   } else {
-    titleEl.innerText = isVi ? `Rút Tiền: ${jar.name}` : `Withdraw Money: ${jar.name}`;
+    titleEl.innerText = isVi ? `Rút Tiền: ${jar.name}` : `Withdraw Money: ${translateUserText(jar.name)}`;
     descEl.innerText = isVi
-      ? `Rút bớt tiền từ hũ tiết kiệm để chi tiêu mục tiêu khác. (Hiện có: ${formatVND(jar.currentAmount)})`
-      : `Withdraw money from this jar to cover target expenses. (Current: ${formatVND(jar.currentAmount)})`;
+        ? `Rút bớt tiền từ hũ tiết kiệm để chi tiêu mục tiêu khác. (Hiện có: ${formatVND(jar.currentAmount)})`
+        : `Withdraw money from this jar to cover target expenses. (Current: ${formatVND(jar.currentAmount)})`;
     submitBtn.innerText = isVi ? 'Xác nhận rút' : 'Withdraw Cash';
     submitBtn.className = 'w-1/2 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-bold transition-all uppercase tracking-wider shadow-sm';
     if (modalIcon) modalIcon.setAttribute('data-lucide', 'arrow-up-right');
@@ -521,7 +533,10 @@ function handleModalFormSubmit(e) {
   const isVi = state.language === 'vi';
 
   if (amount <= 0) {
-    showToast(isVi ? 'Số tiền giao dịch không hợp lệ!' : 'Invalid cash transaction amount!', 'error');
+    showToast(
+        isVi ? 'Số tiền giao dịch không hợp lệ!' : 'Invalid cash transaction amount!',
+        'error'
+    );
     return;
   }
 
@@ -530,26 +545,99 @@ function handleModalFormSubmit(e) {
 
   const jar = state.savingsJars[jarIndex];
 
+  // ==========================
+  // GỬI TIỀN VÀO HŨ
+  // ==========================
   if (actionType === 'deposit') {
-    state.savingsJars[jarIndex].currentAmount = (jar.currentAmount || 0) + amount;
-    showToast(isVi ? `Đã gửi thêm +${formatVND(amount)} vào hũ "${jar.name}"! 🐖` : `Successfully deposited +${formatVND(amount)} into "${jar.name}"! 🐖`);
-  } else {
-    // Validate limits
-    if (amount > (jar.currentAmount || 0)) {
-      document.getElementById('modal-limit-warning').classList.remove('hidden');
+
+    state.savingsJars[jarIndex].currentAmount =
+        (jar.currentAmount || 0) + amount;
+
+    state.transactions.push({
+      id: 'tx-' + Date.now(),
+      title: isVi ? 'Gửi vào hũ tiết kiệm' : 'Deposit to Savings Jar',
+      category: 'Savings',
+      amount: amount,
+      type: 'EXPENSE',
+      date: new Date().toISOString().split('T')[0],
+      notes: jar.name
+    });
+
+    showToast(
+        isVi
+            ? `Đã gửi ${formatVND(amount)} vào "${jar.name}"`
+            : `Deposited ${formatVND(amount)} into "${jar.name}"`
+    );
+  }
+
+      // ==========================
+      // RÚT TIỀN KHỎI HŨ
+  // ==========================
+  else if (actionType === 'withdraw') {
+
+    if ((jar.currentAmount || 0) < amount) {
+      showToast(
+          isVi
+              ? 'Số tiền trong hũ không đủ!'
+              : 'Not enough money in this savings jar!',
+          'error'
+      );
       return;
     }
-    state.savingsJars[jarIndex].currentAmount = (jar.currentAmount || 0) - amount;
-    showToast(isVi ? `Đã rút bớt -${formatVND(amount)} từ hũ "${jar.name}"!` : `Successfully withdrew -${formatVND(amount)} from "${jar.name}"!`);
+
+    state.savingsJars[jarIndex].currentAmount =
+        (jar.currentAmount || 0) - amount;
+
+    state.transactions.push({
+      id: 'tx-' + Date.now(),
+      title: isVi ? 'Rút từ hũ tiết kiệm' : 'Withdraw from Savings Jar',
+      category: 'Savings',
+      amount: amount,
+      type: 'INCOME',
+      date: new Date().toISOString().split('T')[0],
+      notes: jar.name
+    });
+
+    showToast(
+        isVi
+            ? `Đã rút ${formatVND(amount)} từ "${jar.name}"`
+            : `Withdrawn ${formatVND(amount)} from "${jar.name}"`
+    );
   }
+
+  // ==========================
+  // LƯU DỮ LIỆU
+  // ==========================
+  saveUserData();
+
+  renderSavingsJars();
+
+  if (typeof renderDashboard === "function") {
+    renderDashboard();
+  }
+
+  if (typeof renderTransactions === "function") {
+    renderTransactions();
+  }
+
+  if (typeof renderReports === "function") {
+    renderReports();
+  }
+
+  closeActionModal();
+}
 
   // Save changes locally and to backend Spring Boot
   saveUserData();
 
-  // Reload views and close modal
   renderSavingsJars();
+
+  if (typeof renderDashboard === "function") {
+    renderDashboard();
+  }
+
   closeActionModal();
-}
+
 
 // Global script load handler
 if (document.readyState !== 'loading') {

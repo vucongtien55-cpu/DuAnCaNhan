@@ -10,15 +10,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              fontFamily: {
-                sans: ['Inter', 'sans-serif'],
-                mono: ['JetBrains Mono', 'monospace'],
-              },
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                },
             },
-          },
         };
     </script>
     <link rel="stylesheet" href="css/style.css" />
@@ -49,20 +49,20 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800/60">
                 <!-- Col 1: Total accumulated -->
                 <div class="md:pr-6">
-                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Đã tích lũy</span>
+                    <span id="lbl-total-saved" class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Đã tích lũy</span>
                     <h3 class="text-xl md:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1.5" id="global-current-amt">0đ</h3>
                     <p class="text-[10px] text-slate-400 mt-1" id="global-current-lbl">Tổng số tiền hiện có trong các hũ</p>
                 </div>
                 <!-- Col 2: Total Target -->
                 <div class="pt-4 md:pt-0 md:px-6">
-                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Tổng mục tiêu</span>
+                    <span id="lbl-total-target" class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Tổng mục tiêu</span>
                     <h3 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white font-mono mt-1.5" id="global-target-amt">0đ</h3>
                     <p class="text-[10px] text-slate-400 mt-1" id="global-target-lbl">Cần đạt để hoàn thành các mục tiêu</p>
                 </div>
                 <!-- Col 3: Achieved percentage -->
                 <div class="pt-4 md:pt-0 md:pl-6">
                     <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tỷ lệ hoàn thành</span>
+                        <span id="lbl-completion-rate" class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tỷ lệ hoàn thành</span>
                         <span class="text-xs font-black text-indigo-500 font-mono" id="global-percentage">0%</span>
                     </div>
                     <!-- Progress bar -->
@@ -185,9 +185,9 @@
 </div>
 
 <!-- SCRIPTS -->
-<script src="js/translations.js"></script>
-<script src="js/data.js"></script>
-<script src="js/state.js"></script>
-<script src="js/savings.js"></script>
+<script src="js/translations.js?v=2026_01"></script>
+<script src="js/data.js?v=2026_01"></script>
+<script src="js/state.js?v=2026_01"></script>
+<script src="js/savings.js?v=2026_01"></script>
 </body>
 </html>

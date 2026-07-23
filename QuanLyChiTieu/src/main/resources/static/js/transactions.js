@@ -21,7 +21,7 @@ function populateCategoryFilter() {
             uniqueNames.push(c.name);
             const option = document.createElement('option');
             option.value = c.name;
-            option.innerText = c.name;
+            option.innerText = translateCategory(c.name);
             select.appendChild(option);
         }
     });
@@ -90,14 +90,14 @@ function renderLedger(list) {
             <i data-lucide="${icon}" class="w-4 h-4"></i>
           </div>
           <div>
-            <h5 class="font-extrabold text-slate-800 dark:text-white">${tx.title}</h5>
-            <span class="text-[9px] font-extrabold tracking-wider uppercase" style="color: ${color}">${tx.category}</span>
+            <h5 class="font-extrabold text-slate-800 dark:text-white">${translateUserText(tx.title)}</h5>
+            <span class="text-[9px] font-extrabold tracking-wider uppercase" style="color: ${color}">${translateCategory(tx.category)}</span>
           </div>
         </div>
       </td>
       
       <!-- Notes -->
-      <td class="p-4 text-slate-400 max-w-[200px] truncate font-sans">${tx.notes || '-'}</td>
+      <td class="p-4 text-slate-400 max-w-[200px] truncate font-sans">${tx.notes ? translateUserText(tx.notes) : '-'}</td>
       
       <!-- Amount -->
       <td class="p-4 text-right font-black font-mono ${isIncome ? 'text-emerald-500' : 'text-slate-800 dark:text-white'}">

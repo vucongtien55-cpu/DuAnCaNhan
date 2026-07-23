@@ -55,15 +55,6 @@ function renderBudgetInputs() {
     }
     container.innerHTML = '';
 
-    // Fallback dữ liệu mặc định nếu state chưa kịp load dữ liệu
-    if (!state.expenseCategories || state.expenseCategories.length === 0) {
-        state.expenseCategories = [...EXPENSE_CATEGORIES];
-    }
-
-    if (!state.budgets || state.budgets.length === 0) {
-        state.budgets = [...INITIAL_BUDGETS];
-    }
-
     // Load current expense categories (both defaults and custom)
     const expenseCats = (state.expenseCategories || []).filter(c => c && c.name);
     const budgets = (state.budgets || []).filter(b => b && b.category);
@@ -88,7 +79,7 @@ function renderBudgetInputs() {
           <i data-lucide="${icon}" class="w-4.5 h-4.5"></i>
         </div>
         <div>
-          <h5 class="text-xs font-extrabold text-slate-800 dark:text-white">${cat.name}</h5>
+          <h5 class="text-xs font-extrabold text-slate-800 dark:text-white">${translateCategory(cat.name)}</h5>
           <span class="text-[9px] font-bold text-slate-400">${state.language === 'vi' ? 'Danh mục Chi phí' : 'Expense Category'}</span>
         </div>
       </div>
@@ -96,7 +87,7 @@ function renderBudgetInputs() {
       <!-- Input limit -->
       <div class="w-full sm:w-48 relative flex items-center">
         <div class="absolute left-3.5 text-xs font-black text-slate-400">₫</div>
-        <input type="number" data-budget-cat="${cat.name}" value="${limitValue}" min="0" step="1" required class="w-full pl-8 pr-4 py-2 text-xs font-bold font-mono rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-white bg-transparent" placeholder="Nhập hạn mức..." />
+        <input type="number" data-budget-cat="${cat.name}" value="${limitValue}" min="0" step="1" required class="w-full pl-8 pr-4 py-2 text-xs font-bold font-mono rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-white bg-transparent" placeholder="${state.language === 'vi' ? 'Nhập hạn mức...' : 'Enter limit...'}" />
       </div>
     `;
 

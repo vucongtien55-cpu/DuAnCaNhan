@@ -50,8 +50,42 @@ function initCategoriesPage() {
     const t = TRANSLATIONS[lang];
 
     // Translate static headers
-    document.getElementById('cat-header-title').innerText = lang === 'vi' ? 'Quản lý danh mục thu chi' : 'Category Manager';
-    document.getElementById('cat-header-sub').innerText = lang === 'vi' ? 'Tự do cá nhân hóa các nhóm phân loại tài chính theo nhu cầu' : 'Personalize your financial groupings dynamically as needed';
+    const isVi = lang === 'vi';
+    document.getElementById('cat-header-title').innerText = isVi ? 'Quản lý danh mục thu chi' : 'Category Manager';
+    document.getElementById('cat-header-sub').innerText = isVi ? 'Tự do cá nhân hóa các nhóm phân loại tài chính theo nhu cầu' : 'Personalize your financial groupings dynamically as needed';
+
+    const addCatHeading = document.getElementById('add-cat-heading');
+    if (addCatHeading) addCatHeading.innerHTML = `<i data-lucide="plus-circle" class="w-3.5 h-3.5 text-indigo-500"></i> ${isVi ? 'Thêm danh mục mới' : 'Add New Category'}`;
+
+    const lblCatName = document.getElementById('lbl-cat-name');
+    if (lblCatName) lblCatName.innerText = isVi ? 'Tên danh mục' : 'Category Name';
+
+    const catNameInput = document.getElementById('cat-name-input');
+    if (catNameInput) catNameInput.placeholder = isVi ? 'Ví dụ: Nuôi thú cưng, Từ thiện...' : 'Example: Pets, Charity...';
+
+    const lblCatType = document.getElementById('lbl-cat-type');
+    if (lblCatType) lblCatType.innerText = isVi ? 'Phân loại' : 'Type';
+
+    const optExpense = document.getElementById('opt-expense');
+    if (optExpense) optExpense.innerText = isVi ? 'Khoản Chi (Chi phí)' : 'Expense (Outgoing)';
+
+    const optIncome = document.getElementById('opt-income');
+    if (optIncome) optIncome.innerText = isVi ? 'Khoản Thu (Thu nhập)' : 'Income (Incoming)';
+
+    const lblSelectIcon = document.getElementById('lbl-select-icon');
+    if (lblSelectIcon) lblSelectIcon.innerText = isVi ? 'Chọn biểu tượng' : 'Choose icon';
+
+    const lblSelectColor = document.getElementById('lbl-select-color');
+    if (lblSelectColor) lblSelectColor.innerText = isVi ? 'Chọn màu sắc' : 'Choose color';
+
+    const submitCatBtn = document.getElementById('submit-cat-btn');
+    if (submitCatBtn) submitCatBtn.innerText = isVi ? 'Thêm danh mục' : 'Create Category';
+
+    const expensesListHeading = document.getElementById('expenses-list-heading');
+    if (expensesListHeading) expensesListHeading.innerHTML = `<i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-rose-500"></i> ${isVi ? 'Danh mục Chi tiêu' : 'Expense Categories'}`;
+
+    const incomesListHeading = document.getElementById('incomes-list-heading');
+    if (incomesListHeading) incomesListHeading.innerHTML = `<i data-lucide="arrow-down-left" class="w-3.5 h-3.5 text-emerald-500"></i> ${isVi ? 'Danh mục Thu nhập' : 'Income Categories'}`;
 
     renderIconGrid();
     renderColorGrid();
@@ -158,7 +192,7 @@ function renderCategoriesList() {
         <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background-color: ${cat.color}">
           <i data-lucide="${cat.icon}" class="w-4 h-4"></i>
         </div>
-        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">${cat.name}</span>
+        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">${translateCategory(cat.name)}</span>
       </div>
       <button onclick="deleteCategory('${cat.id}', 'EXPENSE')" class="p-1 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer">
         <i data-lucide="trash" class="w-3.5 h-3.5"></i>
@@ -176,7 +210,7 @@ function renderCategoriesList() {
         <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0" style="background-color: ${cat.color}">
           <i data-lucide="${cat.icon}" class="w-4 h-4"></i>
         </div>
-        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">${cat.name}</span>
+        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">${translateCategory(cat.name)}</span>
       </div>
       <button onclick="deleteCategory('${cat.id}', 'INCOME')" class="p-1 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer">
         <i data-lucide="trash" class="w-3.5 h-3.5"></i>
