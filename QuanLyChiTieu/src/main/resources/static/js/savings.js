@@ -429,30 +429,38 @@ async function deleteSavingsJar(id) {
   if (!jar) return;
 
   const isVi = state.language === 'vi';
+
+  // --- LOGIC KIỂM TRA MỚI ---
+  if ((jar.currentAmount || 0) > 0) {
+    showToast(
+        isVi
+            ? `Hũ "${jar.name}" vẫn còn tiền (${formatVND(jar.currentAmount)}). Hãy rút sạch tiền trước khi xóa hũ!`
+            : `Jar "${jar.name}" is not empty. Please withdraw all funds before deleting!`,
+        'error'
+    );
+    return; // Dừng lại ở đây, không cho xóa
+  }
+
+  // Nếu tiền bằng 0 mới chạy tiếp phần xác nhận dưới đây
   const confirmMsg = isVi
-      ? `Bạn có chắc chắn muốn xóa hũ tiết kiệm "${jar.name}"?\n\nHành động này không thể hoàn tác!`
-      : `Are you sure you want to delete the savings goal "${translateUserText(jar.name)}"?\n\nThis cannot be undone!`;
+      ? `Bạn có chắc chắn muốn xóa hũ "${jar.name}"?`
+      : `Are you sure you want to delete "${jar.name}"?`;
 
   if (!confirm(confirmMsg)) return;
 
-  // If online, perform single DELETE API call defensively, or synchronize entire batch
   if (state.backendConnected && typeof jar.id === 'number') {
     try {
       await fetch(`${BACKEND_API_URL}/savings-jars/${jar.id}?email=${encodeURIComponent(state.user)}`, {
         method: 'DELETE'
       });
     } catch (e) {
-      console.warn("Backend single delete call failed. Synchronizing full batch instead.");
+      console.warn("Backend sync failed.");
     }
   }
 
-  // Remove from state array
   state.savingsJars = state.savingsJars.filter(j => String(j.id) !== String(id));
-
-  // Save locally & trigger background sync list
   saveUserData();
-
-  showToast(isVi ? 'Đã xóa hũ tiết kiệm thành công!' : 'Savings jar deleted successfully!');
+  showToast(isVi ? 'Đã xóa hũ thành công!' : 'Deleted successfully!');
   renderSavingsJars();
 }
 window.deleteSavingsJar = deleteSavingsJar;
