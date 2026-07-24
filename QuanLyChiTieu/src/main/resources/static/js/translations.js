@@ -40,7 +40,7 @@ const TRANSLATIONS = {
     languageName: 'Tiếng Việt',
     appName: 'Sổ Thu Chi Cá Nhân',
     appSubVersion: 'Phiên bản Web 2026',
-    walletBalance: 'Tổng tài sản tích lũy',
+    walletBalance: "Số dư hiện tại",
     walletSub: 'Từ ngày tải dữ liệu hệ thống',
     mainMenu: 'Menu chính',
     reportTab: 'Báo cáo dòng tiền',

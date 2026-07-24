@@ -529,30 +529,39 @@ function handleModalFormSubmit(e) {
   const id = document.getElementById('modal-jar-id').value;
   const actionType = document.getElementById('modal-action-type').value;
   const amount = Number(document.getElementById('modal-amount-input').value) || 0;
-
   const isVi = state.language === 'vi';
 
   if (amount <= 0) {
-    showToast(
-        isVi ? 'Số tiền giao dịch không hợp lệ!' : 'Invalid cash transaction amount!',
-        'error'
-    );
+    showToast(isVi ? 'Số tiền không hợp lệ!' : 'Invalid amount!', 'error');
     return;
   }
 
   const jarIndex = state.savingsJars.findIndex(j => String(j.id) === String(id));
   if (jarIndex === -1) return;
-
   const jar = state.savingsJars[jarIndex];
 
+  // Lấy số dư ví hiện tại từ hàm đã thêm ở Bước 1
+  const currentWalletBalance = getWalletBalance();
+
   // ==========================
-  // GỬI TIỀN VÀO HŨ
+  // LOGIC GỬI TIỀN VÀO HŨ (CÓ KIỂM TRA SỐ DƯ)
   // ==========================
   if (actionType === 'deposit') {
+    // KIỂM TRA: Nếu số tiền gửi lớn hơn số dư thực tế trong ví
+    if (amount > currentWalletBalance) {
+      showToast(
+          isVi
+              ? `Số dư không đủ! Bạn chỉ còn ${formatVND(currentWalletBalance)} trong ví.`
+              : `Insufficient balance! You only have ${formatVND(currentWalletBalance)} left.`,
+          'error'
+      );
+      return; // Dừng xử lý, không cho gửi
+    }
 
-    state.savingsJars[jarIndex].currentAmount =
-        (jar.currentAmount || 0) + amount;
+    // Nếu đủ tiền, tiến hành cộng vào hũ
+    state.savingsJars[jarIndex].currentAmount = (jar.currentAmount || 0) + amount;
 
+    // Ghi nhận một khoản CHI TIÊU (Vì tiền rời ví vào hũ)
     state.transactions.push({
       id: 'tx-' + Date.now(),
       title: isVi ? 'Gửi vào hũ tiết kiệm' : 'Deposit to Savings Jar',
@@ -563,31 +572,21 @@ function handleModalFormSubmit(e) {
       notes: jar.name
     });
 
-    showToast(
-        isVi
-            ? `Đã gửi ${formatVND(amount)} vào "${jar.name}"`
-            : `Deposited ${formatVND(amount)} into "${jar.name}"`
-    );
+    showToast(isVi ? `Đã gửi ${formatVND(amount)} vào "${jar.name}"` : `Deposited ${formatVND(amount)}`);
   }
 
       // ==========================
-      // RÚT TIỀN KHỎI HŨ
+      // LOGIC RÚT TIỀN KHỎI HŨ
   // ==========================
   else if (actionType === 'withdraw') {
-
     if ((jar.currentAmount || 0) < amount) {
-      showToast(
-          isVi
-              ? 'Số tiền trong hũ không đủ!'
-              : 'Not enough money in this savings jar!',
-          'error'
-      );
+      showToast(isVi ? 'Tiền trong hũ không đủ để rút!' : 'Not enough money in jar!', 'error');
       return;
     }
 
-    state.savingsJars[jarIndex].currentAmount =
-        (jar.currentAmount || 0) - amount;
+    state.savingsJars[jarIndex].currentAmount = (jar.currentAmount || 0) - amount;
 
+    // Ghi nhận một khoản THU NHẬP (Vì tiền từ hũ quay lại ví)
     state.transactions.push({
       id: 'tx-' + Date.now(),
       title: isVi ? 'Rút từ hũ tiết kiệm' : 'Withdraw from Savings Jar',
@@ -598,31 +597,15 @@ function handleModalFormSubmit(e) {
       notes: jar.name
     });
 
-    showToast(
-        isVi
-            ? `Đã rút ${formatVND(amount)} từ "${jar.name}"`
-            : `Withdrawn ${formatVND(amount)} from "${jar.name}"`
-    );
+    showToast(isVi ? `Đã rút ${formatVND(amount)} từ "${jar.name}"` : `Withdrawn ${formatVND(amount)}`);
   }
 
-  // ==========================
-  // LƯU DỮ LIỆU
-  // ==========================
+  // LƯU DỮ LIỆU & CẬP NHẬT GIAO DIỆN
   saveUserData();
-
   renderSavingsJars();
 
-  if (typeof renderDashboard === "function") {
-    renderDashboard();
-  }
-
-  if (typeof renderTransactions === "function") {
-    renderTransactions();
-  }
-
-  if (typeof renderReports === "function") {
-    renderReports();
-  }
+  if (typeof renderDashboard === "function") renderDashboard();
+  if (typeof renderTransactions === "function") renderTransactions();
 
   closeActionModal();
 }

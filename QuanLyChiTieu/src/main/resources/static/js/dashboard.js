@@ -1,7 +1,18 @@
 // 8. JS controller for dashboard.html
-
+let sectionDateFilter = ''; // Thêm dòng này ở đầu file dashboard.js
 let currentFilter = 'all'; // 'all', 'month', 'custom_range', or 'YYYY-MM-DD'
 let categoryChartInstance = null;
+let sectionMonthFilter = '';
+// Lưu tháng đang chọn cho phần báo cáo ngày
+
+window.updateDailySectionMonth = function(val) {
+    sectionMonthFilter = val;
+    renderDashboard();
+};
+window.updateDailySectionDate = function(val) {
+    sectionDateFilter = val;
+    renderDashboard();
+};
 
 function setDashboardFilter(filter) {
     currentFilter = filter;
@@ -170,6 +181,22 @@ function restoreDemoData() {
 }
 window.restoreDemoData = restoreDemoData;
 
+let showExceededOnly = false; // Trạng thái bộ lọc "Chỉ xem ngày vượt hạn mức"
+
+// Hàm cập nhật hạn mức vào LocalStorage
+window.updateDailyLimit = function(val) {
+    const email = state.user;
+    if (!email) return;
+    localStorage.setItem(`chi_tieu_${email}_daily_limit`, val);
+    renderDashboard();
+};
+
+// Hàm bật/tắt chế độ xem lịch sử vượt mức
+window.toggleExceededOnly = function() {
+    showExceededOnly = !showExceededOnly;
+    renderDashboard();
+};
+
 function renderDashboard() {
     const lang = state.language;
     const t = TRANSLATIONS[lang];
@@ -203,7 +230,7 @@ function renderDashboard() {
     const filterMonthBtn = document.getElementById('filter-month-btn');
     if (filterMonthBtn) filterMonthBtn.innerText = lang === 'vi' ? 'Tháng này' : 'This Month';
 
-    document.getElementById('balance-label').innerText = t.walletBalance;
+    document.getElementById('balance-label').innerText = lang === 'vi' ? 'Số dư hiện có' : 'Wallet Balance';
     document.getElementById('balance-sub-label').innerText = t.walletSub;
     document.getElementById('income-label').innerText = t.totalIncome;
     document.getElementById('expense-label').innerText = t.totalExpense;
@@ -579,98 +606,115 @@ function renderDailySpendingBreakdown(allTransactions) {
     const lang = state.language;
     const isVi = lang === 'vi';
 
-    // Filter for expense transactions only
-    const expenses = allTransactions.filter(tx => tx.type === 'EXPENSE');
+    // Loại trừ 'Savings' và các mục cố định để tính sinh hoạt phí
+    const EXCLUDED_CATEGORIES = ['Nhà cửa & Dịch vụ', 'Giáo dục', 'Sức khỏe', 'Savings'];
+
+    const email = state.user;
+    const dailyLimit = Number(localStorage.getItem(`chi_tieu_${email}_daily_limit`) || 1000000);
+
+    // Đồng bộ giá trị lên các ô input
+    if (document.getElementById('daily-limit-input')) document.getElementById('daily-limit-input').value = dailyLimit;
+    if (document.getElementById('daily-month-filter')) document.getElementById('daily-month-filter').value = sectionMonthFilter;
+
+    // --- LOGIC LỌC DỮ LIỆU ---
+    let transactionsToRender = allTransactions;
+
+    // Ưu tiên lọc theo Ngày nếu người dùng có chọn ngày cụ thể
+    if (sectionDateFilter) {
+        transactionsToRender = (state.transactions || []).filter(tx => tx.date === sectionDateFilter);
+    }
+    // Nếu không chọn ngày thì mới lọc theo Tháng
+    else if (sectionMonthFilter) {
+        const [year, month] = sectionMonthFilter.split('-').map(Number);
+        transactionsToRender = (state.transactions || []).filter(tx => {
+            const d = new Date(tx.date);
+            return d.getFullYear() === year && (d.getMonth() + 1) === month;
+        });
+    }
+
+    // Quan trọng: Đảm bảo ô input vẫn giữ ngày đã chọn sau khi render
+    if (document.getElementById('daily-date-filter')) {
+        document.getElementById('daily-date-filter').value = sectionDateFilter;
+    }
+
+    const expenses = transactionsToRender.filter(tx => tx.type === 'EXPENSE');
+
+    // (Code phần nút Lịch sử...)
+    const exceededBtn = document.getElementById('exceeded-only-btn');
+    if (exceededBtn) {
+        if (showExceededOnly) {
+            exceededBtn.innerText = isVi ? 'Xem tất cả' : 'Show All';
+            exceededBtn.className = "text-[10px] font-bold px-3 py-2 rounded-lg bg-rose-500 text-white shadow-sm border-0 cursor-pointer";
+        } else {
+            exceededBtn.innerText = isVi ? 'Lịch sử vượt mức' : 'Exceed History';
+            exceededBtn.className = "text-[10px] font-bold px-3 py-2 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 cursor-pointer bg-transparent";
+        }
+    }
 
     if (expenses.length === 0) {
-        container.className = "col-span-1 md:col-span-2 lg:col-span-3 text-center py-8 text-xs font-bold text-slate-400";
-        container.innerHTML = isVi
-            ? 'Chưa có ghi chép chi tiêu nào để phân tích theo ngày.'
-            : 'No expense records found to generate daily breakdown.';
+        container.className = "col-span-1 md:col-span-2 lg:col-span-3 text-center py-12 text-xs font-bold text-slate-400";
+        container.innerHTML = isVi ? 'Không có dữ liệu chi tiêu trong tháng này.' : 'No data for this month.';
         return;
     }
 
-    // Restore container grid styles
-    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
-
-    // Group by date (YYYY-MM-DD)
+    // --- GOM NHÓM THEO NGÀY ---
     const groupedByDate = {};
     expenses.forEach(tx => {
         const d = tx.date;
-        if (!groupedByDate[d]) {
-            groupedByDate[d] = {
-                total: 0,
-                categories: {}
-            };
-        }
-        groupedByDate[d].total += Number(tx.amount);
-        groupedByDate[d].categories[tx.category] = (groupedByDate[d].categories[tx.category] || 0) + Number(tx.amount);
+        if (!groupedByDate[d]) groupedByDate[d] = { total: 0, totalForLimit: 0, categories: {} };
+        const amount = Number(tx.amount);
+        groupedByDate[d].total += amount;
+        if (!EXCLUDED_CATEGORIES.includes(tx.category)) groupedByDate[d].totalForLimit += amount;
+        groupedByDate[d].categories[tx.category] = (groupedByDate[d].categories[tx.category] || 0) + amount;
     });
 
-    // Sort dates descending (newest first)
-    const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+    let sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+    if (showExceededOnly) sortedDates = sortedDates.filter(d => groupedByDate[d].totalForLimit > dailyLimit);
 
-    // Take at most 6 days to keep dashboard clean
-    const displayDates = sortedDates.slice(0, 6);
+    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
 
-    displayDates.forEach(dateStr => {
+    sortedDates.forEach(dateStr => {
         const data = groupedByDate[dateStr];
-
-        // Format date beautifully
-        const dObj = new Date(dateStr);
-        const dateFormatted = dObj.toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
+        const isExceeded = data.totalForLimit > dailyLimit;
+        const percentOfLimit = Math.min((data.totalForLimit / dailyLimit) * 100, 100);
+        const dateFormatted = new Date(dateStr).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+            weekday: 'long', day: 'numeric', month: 'short', year: 'numeric'
         });
 
         const card = document.createElement('div');
-        card.className = "bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/40 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-all";
-
-        // Header of date card
-        let cardContent = `
-      <div>
-        <div class="flex justify-between items-center pb-2.5 mb-3 border-b border-slate-100 dark:border-slate-800/40">
-          <span class="text-[11px] font-black text-slate-700 dark:text-slate-300 capitalize">${dateFormatted}</span>
-          <span class="text-xs font-black text-rose-500 font-mono">${formatVND(data.total)}</span>
-        </div>
-        <div class="space-y-2">
-    `;
-
-        // Render category rows for this date
-        Object.keys(data.categories).forEach(cat => {
-            const amt = data.categories[cat];
-            const percent = data.total > 0 ? Math.round((amt / data.total) * 100) : 0;
-            const color = getCategoryColor(cat);
-            const icon = getCategoryIcon(cat);
-
-            cardContent += `
-        <div class="flex items-center justify-between text-[11px] font-bold">
-          <div class="flex items-center gap-1.5 min-w-0">
-            <span class="w-5 h-5 rounded-md flex items-center justify-center text-white" style="background-color: ${color}">
-              <i data-lucide="${icon}" class="w-3 h-3"></i>
-            </span>
-            <span class="text-slate-600 dark:text-slate-300 truncate">${translateCategory(cat)}</span>
-          </div>
-          <div class="text-right flex-shrink-0 font-mono">
-            <span class="text-slate-700 dark:text-slate-300">${formatVND(amt)}</span>
-            <span class="text-[9px] text-slate-400 block">${percent}%</span>
-          </div>
-        </div>
-      `;
-        });
-
-        cardContent += `
-        </div>
-      </div>
-      <div class="mt-4 pt-2.5 border-t border-slate-100 dark:border-slate-800/40 flex justify-between items-center text-[10px] text-slate-400 font-bold">
-        <span>${isVi ? 'Tổng chi tiêu ngày' : 'Total spent on day'}</span>
-        <span class="text-rose-500 dark:text-rose-400 font-black font-mono">${formatVND(data.total)}</span>
-      </div>
-    `;
-
-        card.innerHTML = cardContent;
+        card.className = `border rounded-xl p-4 flex flex-col justify-between transition-all hover:shadow-md ${isExceeded ? 'bg-rose-50/30 dark:bg-rose-950/10 border-rose-200 dark:border-rose-900/40' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`;
+        card.innerHTML = `
+            <div>
+                <div class="flex justify-between items-start pb-2 mb-3 border-b border-slate-100 dark:border-slate-800/40">
+                    <span class="text-[10px] font-black text-slate-700 dark:text-slate-300 capitalize">${dateFormatted}</span>
+                    <div class="text-right">
+                        <span class="text-xs font-black ${isExceeded ? 'text-rose-600' : 'text-slate-800 dark:text-white'} font-mono">${formatVND(data.total)}</span>
+                        ${isExceeded ? '<span class="block text-[8px] font-extrabold text-rose-500 uppercase">Vượt sinh hoạt phí!</span>' : ''}
+                    </div>
+                </div>
+                <div class="mb-4 bg-slate-50/50 dark:bg-slate-800/20 p-2 rounded-lg">
+                    <div class="flex justify-between items-center mb-1 text-[9px] font-bold">
+                        <span class="text-slate-500">Biến đổi: ${formatVND(data.totalForLimit)}</span>
+                        <span class="text-slate-400">HM: ${formatVND(dailyLimit)}</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500 ${isExceeded ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-emerald-500'}" style="width: ${percentOfLimit}%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    ${Object.keys(data.categories).map(cat => `
+                        <div class="flex items-center justify-between text-[10px] font-bold">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <div class="w-4 h-4 rounded-md flex items-center justify-center text-white" style="background-color: ${getCategoryColor(cat)}">
+                                    <i data-lucide="${getCategoryIcon(cat)}" class="w-2.5 h-2.5"></i>
+                                </div>
+                                <span class="${EXCLUDED_CATEGORIES.includes(cat) ? 'text-slate-400 italic font-medium' : 'text-slate-600 dark:text-slate-400'} truncate">${translateCategory(cat)}</span>
+                            </div>
+                            <span class="text-slate-700 dark:text-slate-300 font-mono">${formatVND(data.categories[cat])}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
         container.appendChild(card);
     });
 

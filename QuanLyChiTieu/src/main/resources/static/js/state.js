@@ -638,6 +638,14 @@ window.injectSharedLayout = injectSharedLayout;
 if (state.user) {
   checkBackendConnection();
 }
+// Hàm tính toán số dư thực tế trong ví (Dán vào cuối file state.js)
+function getWalletBalance() {
+  return (state.transactions || []).reduce((acc, tx) => {
+    const amt = Number(tx.amount) || 0;
+    return tx.type === 'INCOME' ? acc + amt : acc - amt;
+  }, 0);
+}
+window.getWalletBalance = getWalletBalance;
 
 // Auto run auth check on load
 checkAuth();
