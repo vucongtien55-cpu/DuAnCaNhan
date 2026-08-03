@@ -1,4 +1,6 @@
-// 2. Default categories & data presets
+// 1. DANH MỤC CHI TIÊU & THU NHẬP MẶC ĐỊNH
+
+// Danh sách các danh mục Chi tiêu (EXPENSE)
 const EXPENSE_CATEGORIES = [
   { id: 'anuong', name: 'Ăn uống', icon: 'utensils', color: '#EF4444', type: 'EXPENSE' },
   { id: 'dichuyen', name: 'Di chuyển', icon: 'car', color: '#3B82F6', type: 'EXPENSE' },
@@ -10,6 +12,7 @@ const EXPENSE_CATEGORIES = [
   { id: 'expense_khac', name: 'Khác (Chi tiêu)', icon: 'more-horizontal', color: '#64748B', type: 'EXPENSE' }
 ];
 
+// Danh sách các danh mục Thu nhập (INCOME)
 const INCOME_CATEGORIES = [
   { id: 'luong', name: 'Lương hằng tháng', icon: 'briefcase', color: '#10B981', type: 'INCOME' },
   { id: 'lamthem', name: 'Làm thêm (Freelance)', icon: 'laptop', color: '#14B8A6', type: 'INCOME' },
@@ -18,6 +21,11 @@ const INCOME_CATEGORIES = [
   { id: 'income_khac', name: 'Khác (Thu nhập)', icon: 'dollar-sign', color: '#64748B', type: 'INCOME' }
 ];
 
+
+// 2. DỮ LIỆU KHỞI TẠO BAN ĐẦU (MOCK DATA)
+
+
+// Hạn mức ngân sách dự kiến cho các danh mục chi tiêu
 const INITIAL_BUDGETS = [
   { category: 'Ăn uống', limit: 4500000 },
   { category: 'Di chuyển', limit: 1200000 },
@@ -27,6 +35,7 @@ const INITIAL_BUDGETS = [
   { category: 'Sức khỏe', limit: 1500000 }
 ];
 
+// Lịch sử các giao dịch thu/chi ban đầu
 const INITIAL_TRANSACTIONS = [
   { id: 'tx-1', title: 'Nhận lương tháng 6', amount: 18500000, type: 'INCOME', category: 'Lương hằng tháng', date: '2026-06-05', notes: 'Lương công ty chính thức' },
   { id: 'tx-2', title: 'Trả tiền thuê nhà & điện nước', amount: 4500000, type: 'EXPENSE', category: 'Nhà cửa & Dịch vụ', date: '2026-06-06', notes: 'Tiền nhà tháng 6' },
@@ -43,14 +52,20 @@ const INITIAL_TRANSACTIONS = [
   { id: 'tx-13', title: 'Đặt Highlands Coffee', amount: 135000, type: 'EXPENSE', category: 'Ăn uống', date: '2026-06-21', notes: 'Trà sen vàng và freeze trà xanh' }
 ];
 
-window.EXPENSE_CATEGORIES = EXPENSE_CATEGORIES;
-window.INCOME_CATEGORIES = INCOME_CATEGORIES;
-window.INITIAL_BUDGETS = INITIAL_BUDGETS;
-window.INITIAL_TRANSACTIONS = INITIAL_TRANSACTIONS;
-
+// Danh sách các hũ tiết kiệm / mục tiêu tài chính
 const INITIAL_SAVINGS_JARS = [
   { id: 'sj-1', name: 'Quỹ khẩn cấp (Emergency)', targetAmount: 20000000, currentAmount: 8500000, color: '#F59E0B', icon: 'shield-alert' },
   { id: 'sj-2', name: 'Mua Macbook Pro M4', targetAmount: 45000000, currentAmount: 15000000, color: '#3B82F6', icon: 'laptop' },
   { id: 'sj-3', name: 'Đi du lịch Nhật Bản', targetAmount: 30000000, currentAmount: 6000000, color: '#EC4899', icon: 'palmtree' }
 ];
+
+
+// 3. XUẤT DỮ LIỆU RA PHẠM VI TOÀN CỤC (GLOBAL)
+
+
+// Gắn các hằng số vào đối tượng `window` để có thể truy cập toàn cục từ các file JS khác
+window.EXPENSE_CATEGORIES = EXPENSE_CATEGORIES;
+window.INCOME_CATEGORIES = INCOME_CATEGORIES;
+window.INITIAL_BUDGETS = INITIAL_BUDGETS;
+window.INITIAL_TRANSACTIONS = INITIAL_TRANSACTIONS;
 window.INITIAL_SAVINGS_JARS = INITIAL_SAVINGS_JARS;
