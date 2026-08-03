@@ -1,4 +1,4 @@
-// 3. Global State and layout rendering module
+// 3. Module quản lý Trạng thái Toàn cục và hiển thị giao diện
 const state = {
   user: localStorage.getItem('chi_tieu_user') || null,
   language: localStorage.getItem('chi_tieu_lang') || 'vi',
@@ -12,43 +12,43 @@ const state = {
   backendSyncing: false
 };
 
-// Dynamically determine the backend URL to support Vite proxying, local dev, and direct Spring Boot hosting
+// Tự động xác định URL backend để hỗ trợ proxy Vite, môi trường phát triển local và hosting Spring Boot trực tiếp
 const BACKEND_API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? (window.location.port === '3000' ? '/api' : 'http://localhost:8081/api')
-  : '/api';
+    ? (window.location.port === '3000' ? '/api' : 'http://localhost:8081/api')
+    : '/api';
 window.BACKEND_API_URL = BACKEND_API_URL;
 
-// Expose state globally
+// để các file JavaScript khác có thể truy cập cùng một đối tượng state
 window.state = state;
 
-// Check authentication status and redirect if necessary
+// Kiểm tra trạng thái xác thực và điều hướng nếu cần thiết
 function checkAuth() {
   const path = window.location.pathname;
   const isAuthPage = path.endsWith('index.html') || path.endsWith('register.html') || path.endsWith('forgot.html') || path.endsWith('phone-login.html') || path === '/' || path === '';
 
   if (state.user) {
-    // If logged in, load data
+    // Nếu đã đăng nhập, tải dữ liệu người dùng
     loadUserData();
 
-    // Redirect if they try to access login/auth pages
+    // Điều hướng nếu người dùng cố truy cập các trang đăng nhập/xác thực
     if (isAuthPage) {
       window.location.href = 'dashboard.html';
     }
   } else {
-    // If not logged in and trying to access a app page, redirect to login
+    // Nếu chưa đăng nhập và cố truy cập trang ứng dụng, điều hướng về trang đăng nhập
     if (!isAuthPage) {
       window.location.href = 'index.html';
     }
   }
 }
 
-// Format currency
+// Định dạng tiền tệ VND
 function formatVND(amount) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
 window.formatVND = formatVND;
 
-// Get color & icon helpers
+// Các hàm hỗ trợ lấy màu sắc và biểu tượng của danh mục
 function getCategoryIcon(catName) {
   const allCats = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES, ...state.expenseCategories, ...state.incomeCategories];
   const found = allCats.find(c => c.name === catName);
@@ -56,6 +56,7 @@ function getCategoryIcon(catName) {
 }
 window.getCategoryIcon = getCategoryIcon;
 
+//Hàm Lấy màu sắc của một danh mục để hiển thị trên giao diện.
 function getCategoryColor(catName) {
   const allCats = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES, ...state.expenseCategories, ...state.incomeCategories];
   const found = allCats.find(c => c.name === catName);
@@ -63,7 +64,7 @@ function getCategoryColor(catName) {
 }
 window.getCategoryColor = getCategoryColor;
 
-// Toast helper
+// Hàm hỗ trợ hiển thị thông báo (Toast)
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   if (!container) {
@@ -76,9 +77,9 @@ function showToast(message, type = 'success') {
 
   const toast = document.createElement('div');
   toast.className = `p-4 rounded-xl shadow-lg border transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-3 bg-white dark:bg-slate-900 pointer-events-auto ${
-    type === 'success' ? 'border-emerald-500 text-emerald-800 dark:text-emerald-400' :
-    type === 'error' ? 'border-rose-500 text-rose-800 dark:text-rose-400' :
-    'border-amber-500 text-amber-800 dark:text-amber-400'
+      type === 'success' ? 'border-emerald-500 text-emerald-800 dark:text-emerald-400' :
+          type === 'error' ? 'border-rose-500 text-rose-800 dark:text-rose-400' :
+              'border-amber-500 text-amber-800 dark:text-amber-400'
   }`;
 
   const iconName = type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'alert-circle';
@@ -101,12 +102,12 @@ function showToast(message, type = 'success') {
 }
 window.showToast = showToast;
 
-// Save and Load user data helpers with Spring Boot DB support
+// Các hàm hỗ trợ Lưu và Tải dữ liệu người dùng với sự hỗ trợ từ DB Spring Boot
 async function loadUserData() {
   if (!state.user) return;
   const email = state.user;
 
-  // 1. Initial quick load from local storage
+  // 1. Tải nhanh ban đầu từ local storage
   try {
     const localTxs = localStorage.getItem(`chi_tieu_${email}_transactions`);
     state.transactions = localTxs ? JSON.parse(localTxs) : [];
@@ -130,17 +131,17 @@ async function loadUserData() {
     state.savingsJars = [...INITIAL_SAVINGS_JARS];
   }
 
-  // Ensure keys exist initially
+  // Đảm bảo các khóa dữ liệu tồn tại ban đầu
   saveUserDataLocally();
 
-  // 2. Proactively probe and pull from backend if active
+  // 2. Chủ động thăm dò và lấy dữ liệu từ backend nếu đang hoạt động
   try {
     const probe = await fetch(`${BACKEND_API_URL}/users/profile?email=${encodeURIComponent(email)}`);
     if (probe.ok) {
       state.backendConnected = true;
       updateBackendBadge();
 
-      // Pull and update custom categories
+      // Lấy và cập nhật các danh mục tùy chỉnh
       const catRes = await fetch(`${BACKEND_API_URL}/categories?email=${encodeURIComponent(email)}`);
       if (catRes.ok) {
         const backendCats = await catRes.json();
@@ -153,95 +154,95 @@ async function loadUserData() {
         }
       }
 
-      // Pull and update budgets
+      // Lấy và cập nhật hạn mức chi tiêu (budgets)
       const budRes = await fetch(`${BACKEND_API_URL}/budgets?email=${encodeURIComponent(email)}`);
       if (budRes.ok) {
         const backendBuds = await budRes.json();
         if (Array.isArray(backendBuds)) {
           state.budgets = backendBuds
-            .filter(b => b && b.category)
-            .map(b => ({
-              category: b.category,
-              limit: Number(b.limitAmount) || 0,
-              id: b.id
-            }));
+              .filter(b => b && b.category)
+              .map(b => ({
+                category: b.category,
+                limit: Number(b.limitAmount) || 0,
+                id: b.id
+              }));
         }
       }
 
-      // Pull and update transactions
+      // Lấy và cập nhật các giao dịch
       const txRes = await fetch(`${BACKEND_API_URL}/transactions?email=${encodeURIComponent(email)}`);
-                  if (txRes.ok) {
-                      const backendTxs = await txRes.json();
-                      if (Array.isArray(backendTxs)) {
-                          const backendMappedTxs = backendTxs
-                              .filter(t => t)
-                              .map(t => ({
-                                  id: String(t.id),
-                                  title: t.title || t.note || t.notes || t.category || 'Giao dịch',
-                                  date: t.date || new Date().toISOString().split('T')[0],
-                                  amount: Number(t.amount) || 0,
-                                  type: (t.type || 'EXPENSE').toUpperCase(),
-                                  category: t.category || 'Khác (Chi tiêu)',
-                                  notes: t.note || t.notes || ''
-                              }));
+      if (txRes.ok) {
+        const backendTxs = await txRes.json();
+        if (Array.isArray(backendTxs)) {
+          const backendMappedTxs = backendTxs
+              .filter(t => t)
+              .map(t => ({
+                id: String(t.id),
+                title: t.title || t.note || t.notes || t.category || 'Giao dịch',
+                date: t.date || new Date().toISOString().split('T')[0],
+                amount: Number(t.amount) || 0,
+                type: (t.type || 'EXPENSE').toUpperCase(),
+                category: t.category || 'Khác (Chi tiêu)',
+                notes: t.note || t.notes || ''
+              }));
 
-                          const mergedByKey = new Map();
+          const mergedByKey = new Map();
 
-                          function getTransactionKey(tx) {
-                              return [
-                                  tx.date || '',
-                                  tx.type || '',
-                                  tx.category || '',
-                                  Number(tx.amount) || 0
-                              ].join('|');
-                          }
+          function getTransactionKey(tx) {
+            return [
+              tx.date || '',
+              tx.type || '',
+              tx.category || '',
+              Number(tx.amount) || 0
+            ].join('|');
+          }
 
-                          (state.transactions || []).forEach(tx => {
-                              if (tx) {
-                                  mergedByKey.set(getTransactionKey(tx), tx);
-                              }
-                          });
+          (state.transactions || []).forEach(tx => {
+            if (tx) {
+              mergedByKey.set(getTransactionKey(tx), tx);
+            }
+          });
 
-                          backendMappedTxs.forEach(tx => {
-                              if (tx) {
-                                  const key = getTransactionKey(tx);
-                                  const existingTx = mergedByKey.get(key);
+          backendMappedTxs.forEach(tx => {
+            if (tx) {
+              const key = getTransactionKey(tx);
+              const existingTx = mergedByKey.get(key);
 
-                                  mergedByKey.set(key, {
-                                      ...existingTx,
-                                      ...tx,
-                                      title: tx.title || existingTx?.title || 'Giao dịch',
-                                      notes: tx.notes || existingTx?.notes || ''
-                                  });
-                              }
-                          });
+              mergedByKey.set(key, {
+                ...existingTx,
+                ...tx,
+                title: tx.title || existingTx?.title || 'Giao dịch',
+                notes: tx.notes || existingTx?.notes || ''
+              });
+            }
+          });
 
-                          state.transactions = Array.from(mergedByKey.values());
-                      }
-                  }
+          state.transactions = Array.from(mergedByKey.values());
+        }
+      }
 
-      // Pull and update savings jars
+      // Lấy và cập nhật các hũ tiết kiệm
       const savingsRes = await fetch(`${BACKEND_API_URL}/savings-jars?email=${encodeURIComponent(email)}`);
       if (savingsRes.ok) {
         const backendSavings = await savingsRes.json();
         if (Array.isArray(backendSavings)) {
           state.savingsJars = backendSavings
-            .filter(s => s)
-            .map(s => ({
-              id: s.id,
-              name: s.name,
-              targetAmount: Number(s.targetAmount) || 0,
-              currentAmount: Number(s.currentAmount) || 0,
-              color: s.color || '#3b82f6',
-              icon: s.icon || 'piggy-bank'
-            }));
+              .filter(s => s)
+              .map(s => ({
+                id: s.id,
+                name: s.name,
+                targetAmount: Number(s.targetAmount) || 0,
+                currentAmount: Number(s.currentAmount) || 0,
+                color: s.color || '#3b82f6',
+                icon: s.icon || 'piggy-bank'
+              }));
         }
       }
 
-      // Save locally to cache
+      // Lưu cục bộ vào bộ nhớ đệm (cache)
       saveUserDataLocally();
 
-      // Trigger live updates on the current page
+      // Kích hoạt cập nhật trực tiếp trên các trang hiện tại
       if (typeof renderDashboard === 'function') renderDashboard();
       if (typeof applyFilters === 'function') applyFilters();
       if (typeof populateCategoryFilter === 'function') populateCategoryFilter();
@@ -274,35 +275,35 @@ async function saveUserData() {
   if (!state.user) return;
   const email = state.user;
 
-  // 1. Always save to local storage immediately
+  // 1. Luôn lưu vào local storage ngay lập tức
   saveUserDataLocally();
 
-  // 2. Perform background sync to Spring Boot if online
+  // 2. Thực hiện đồng bộ chạy ngầm lên Spring Boot nếu có kết nối
   if (state.backendConnected) {
     state.backendSyncing = true;
     try {
-      // Sync Transactions
+      // Đồng bộ Giao dịch
       await fetch(`${BACKEND_API_URL}/transactions/sync?email=${encodeURIComponent(email)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state.transactions)
       });
 
-      // Sync Budgets
+      // Đồng bộ Hạn mức (Budgets)
       await fetch(`${BACKEND_API_URL}/budgets/sync?email=${encodeURIComponent(email)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state.budgets)
       });
 
-      // Sync Savings Jars
+      // Đồng bộ Hũ tiết kiệm
       await fetch(`${BACKEND_API_URL}/savings-jars/sync?email=${encodeURIComponent(email)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state.savingsJars)
       });
 
-      // Sync custom categories (only save non-defaults)
+      // Đồng bộ danh mục tùy chỉnh (chỉ lưu các mục không phải mặc định)
       const customCats = [
         ...state.expenseCategories.filter(c => !EXPENSE_CATEGORIES.some(dc => dc.name === c.name)),
         ...state.incomeCategories.filter(c => !INCOME_CATEGORIES.some(dc => dc.name === c.name))
@@ -313,9 +314,9 @@ async function saveUserData() {
         body: JSON.stringify(customCats)
       });
 
-      console.log("Successfully synced all local changes to PostgreSQL via Spring Boot!");
+      console.log("Đã đồng bộ thành công tất cả thay đổi cục bộ lên PostgreSQL qua Spring Boot!");
     } catch (e) {
-      console.warn("Background sync failed:", e);
+      console.warn("Đồng bộ chạy ngầm thất bại:", e);
     } finally {
       state.backendSyncing = false;
     }
@@ -323,7 +324,7 @@ async function saveUserData() {
 }
 window.saveUserData = saveUserData;
 
-// Toggle Theme
+// Chuyển đổi Giao diện (Sáng/Tối)
 function toggleTheme() {
   state.theme = state.theme === 'light' ? 'dark' : 'light';
   localStorage.setItem('chi_tieu_theme', state.theme);
@@ -337,7 +338,7 @@ function applyTheme() {
   } else {
     document.documentElement.classList.remove('dark');
   }
-  // Update theme toggle icons across the page if they exist
+  // Cập nhật biểu tượng chuyển đổi chủ đề trên toàn trang nếu tồn tại
   const themeBtnSpan = document.querySelector('#theme-toggle-span');
   if (themeBtnSpan) {
     const lang = state.language === 'en' ? 'en' : 'vi';
@@ -351,7 +352,7 @@ function applyTheme() {
 }
 window.applyTheme = applyTheme;
 
-// Toggle Language
+// Chuyển đổi Ngôn ngữ
 function toggleLanguage() {
   state.language = state.language === 'vi' ? 'en' : 'vi';
   localStorage.setItem('chi_tieu_lang', state.language);
@@ -359,7 +360,7 @@ function toggleLanguage() {
 }
 window.toggleLanguage = toggleLanguage;
 
-// Logout helper
+// Hàm hỗ trợ đăng xuất
 function logout() {
   localStorage.removeItem('chi_tieu_user');
   state.user = null;
@@ -367,28 +368,28 @@ function logout() {
 }
 window.logout = logout;
 
-// Clear and reset all local and backend user data completely (bringing everything to 0)
+// Xóa và đặt lại toàn bộ dữ liệu người dùng cục bộ và backend hoàn toàn (đưa mọi thứ về 0)
 async function resetAllUserData() {
   if (!state.user) return;
   const email = state.user;
   const isVi = state.language === 'vi';
 
   const confirmMsg = isVi
-    ? "⚠️ CHÚ Ý: Bạn có chắc chắn muốn xóa toàn bộ dữ liệu (giao dịch, hạn mức chi tiêu, danh mục tự tạo) của tài khoản này trên cả trình duyệt và máy chủ không?\n\nThao tác này sẽ đưa tất cả số dư và biểu đồ về 0đ và không thể khôi phục lại!"
-    : "⚠️ WARNING: Are you sure you want to permanently delete all data (transactions, budget limits, custom categories) for this account on both this device and the database server?\n\nThis will reset your entire cashflow to 0 and cannot be undone!";
+      ? "⚠️ CHÚ Ý: Bạn có chắc chắn muốn xóa toàn bộ dữ liệu (giao dịch, hạn mức chi tiêu, danh mục tự tạo) của tài khoản này trên cả trình duyệt và máy chủ không?\n\nThao tác này sẽ đưa tất cả số dư và biểu đồ về 0đ và không thể khôi phục lại!"
+      : "⚠️ WARNING: Are you sure you want to permanently delete all data (transactions, budget limits, custom categories) for this account on both this device and the database server?\n\nThis will reset your entire cashflow to 0 and cannot be undone!";
 
   if (!confirm(confirmMsg)) {
     return;
   }
 
-  // 1. Erase all cached variables in browser's local storage
+  // 1. Xóa tất cả các biến đã lưu trong bộ nhớ đệm (local storage) của trình duyệt
   localStorage.removeItem(`chi_tieu_${email}_transactions`);
   localStorage.removeItem(`chi_tieu_${email}_budgets`);
   localStorage.removeItem(`chi_tieu_${email}_expense_categories`);
   localStorage.removeItem(`chi_tieu_${email}_income_categories`);
   localStorage.removeItem(`chi_tieu_${email}_savings_jars`);
 
-  // 2. Clear global state variables in memory
+  // 2. Xóa các biến trạng thái toàn cục trong bộ nhớ máy
   state.transactions = [];
   state.budgets = [];
   state.expenseCategories = [...EXPENSE_CATEGORIES];
@@ -397,29 +398,29 @@ async function resetAllUserData() {
 
   saveUserDataLocally();
 
-  // 3. Command backend database to clear records if Spring Boot is connected
+  // 3. Lệnh cho cơ sở dữ liệu backend xóa các bản ghi nếu Spring Boot đang kết nối
   if (state.backendConnected) {
     try {
-      // Clear all transactions
+      // Xóa tất cả giao dịch
       await fetch(`${BACKEND_API_URL}/transactions/clear-all?email=${encodeURIComponent(email)}`, {
         method: 'DELETE'
       });
 
-      // Clear budgets on server by syncing with empty list
+      // Xóa hạn mức trên máy chủ bằng cách đồng bộ với danh sách trống
       await fetch(`${BACKEND_API_URL}/budgets/sync?email=${encodeURIComponent(email)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify([])
       });
 
-      // Clear custom categories on server by syncing with empty list
+      // Xóa danh mục tùy chỉnh trên máy chủ bằng cách đồng bộ với danh sách trống
       await fetch(`${BACKEND_API_URL}/categories/sync?email=${encodeURIComponent(email)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify([])
       });
 
-      // Clear savings jars on server by syncing with empty list
+      // Xóa hũ tiết kiệm trên máy chủ bằng cách đồng bộ với danh sách trống
       await fetch(`${BACKEND_API_URL}/savings-jars/sync?email=${encodeURIComponent(email)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -428,14 +429,14 @@ async function resetAllUserData() {
 
       showToast(isVi ? "Đã xóa toàn bộ dữ liệu sạch sẽ trên máy chủ!" : "Successfully cleared all server database records!");
     } catch (err) {
-      console.error("Backend reset database failed:", err);
+      console.error("Đặt lại cơ sở dữ liệu backend thất bại:", err);
       showToast(isVi ? "Đã xóa dữ liệu cục bộ, nhưng đồng bộ với máy chủ thất bại!" : "Cleared local memory, but server synchronization failed!", "error");
     }
   } else {
     showToast(isVi ? "Đã xóa sạch toàn bộ dữ liệu cục bộ!" : "Local cache cleared successfully!");
   }
 
-  // 4. Instantly refresh whatever page layout is currently active
+  // 4. Làm mới ngay lập tức giao diện trang hiện đang hoạt động
   if (typeof renderDashboard === 'function') renderDashboard();
   if (typeof applyFilters === 'function') applyFilters();
   if (typeof populateCategoryFilter === 'function') populateCategoryFilter();
@@ -446,36 +447,36 @@ async function resetAllUserData() {
 }
 window.resetAllUserData = resetAllUserData;
 
-// Restore standard demo preset data and sync to database server
+// Khôi phục dữ liệu mẫu chuẩn và đồng bộ lên máy chủ cơ sở dữ liệu
 async function restoreAllDemoData() {
   if (!state.user) return;
   const email = state.user;
   const isVi = state.language === 'vi';
 
-  // 1. Populate demo presets directly to local storage cache
+  // 1. Đưa dữ liệu mẫu trực tiếp vào bộ nhớ đệm local storage
   localStorage.setItem(`chi_tieu_${email}_transactions`, JSON.stringify(INITIAL_TRANSACTIONS));
   localStorage.setItem(`chi_tieu_${email}_budgets`, JSON.stringify(INITIAL_BUDGETS));
   localStorage.setItem(`chi_tieu_${email}_expense_categories`, JSON.stringify(EXPENSE_CATEGORIES));
   localStorage.setItem(`chi_tieu_${email}_income_categories`, JSON.stringify(INCOME_CATEGORIES));
   localStorage.setItem(`chi_tieu_${email}_savings_jars`, JSON.stringify(INITIAL_SAVINGS_JARS));
 
-  // 2. Read back from cache to global memory
+  // 2. Đọc ngược từ bộ nhớ đệm vào trạng thái toàn cục
   await loadUserData();
 
-  // 3. Sync up to PostgreSQL if Spring Boot backend is connected
+  // 3. Đồng bộ lên PostgreSQL nếu backend Spring Boot đang kết nối
   if (state.backendConnected) {
     try {
       await saveUserData();
       showToast(isVi ? "Đã khôi phục và đồng bộ dữ liệu mẫu lên máy chủ!" : "Demo data successfully loaded and synchronized to server database!");
     } catch (err) {
-      console.error("Demo sync failed:", err);
+      console.error("Đồng bộ dữ liệu mẫu thất bại:", err);
       showToast(isVi ? "Đã khôi phục dữ liệu mẫu cục bộ!" : "Demo data loaded in local memory!");
     }
   } else {
     showToast(isVi ? "Đã khôi phục dữ liệu mẫu cục bộ!" : "Demo data loaded in local memory!");
   }
 
-  // 4. Force trigger immediate visual updates
+  // 4. Bắt buộc kích hoạt cập nhật giao diện ngay lập tức
   if (typeof renderDashboard === 'function') renderDashboard();
   if (typeof applyFilters === 'function') applyFilters();
   if (typeof populateCategoryFilter === 'function') populateCategoryFilter();
@@ -486,7 +487,7 @@ async function restoreAllDemoData() {
 }
 window.restoreAllDemoData = restoreAllDemoData;
 
-// Live System Clock
+// Đồng hồ hệ thống trực tiếp
 function initClock() {
   const clockEl = document.getElementById('system-clock');
   if (clockEl) {
@@ -499,6 +500,7 @@ function initClock() {
   }
 }
 
+// Cập nhật huy hiệu trạng thái backend
 function updateBackendBadge() {
   const badge = document.getElementById('backend-status-badge');
   if (badge) {
@@ -530,7 +532,7 @@ async function checkBackendConnection() {
 }
 window.checkBackendConnection = checkBackendConnection;
 
-// Inject Shared Navigation Sidebar & Header
+// Chèn bố cục dùng chung (Sidebar điều hướng & Header)
 function injectSharedLayout(activePageId) {
   const wrapper = document.getElementById('app-root');
   if (!wrapper) return;
@@ -538,17 +540,17 @@ function injectSharedLayout(activePageId) {
   const lang = state.language === 'en' ? 'en' : 'vi';
   const t = TRANSLATIONS[lang];
 
-  // Get main workspace content first
+  // Lấy nội dung của không gian làm việc chính trước
   const mainContentHTML = wrapper.innerHTML;
 
-  // Render full Layout structure
+  // Hiển thị cấu trúc Bố cục đầy đủ
   document.body.classList.add('md:overflow-hidden');
   wrapper.className = "min-h-screen md:h-screen flex flex-col md:flex-row w-full md:overflow-hidden";
   wrapper.innerHTML = `
-    <!-- Sidebar Navigation -->
+    <!-- Thanh điều hướng Sidebar -->
     <aside class="w-full md:w-60 bg-[#121318] text-slate-200 flex-shrink-0 flex flex-col justify-between border-r border-[#1c1e24] font-sans md:h-full md:overflow-y-auto custom-scrollbar">
       <div>
-        <!-- Sidebar Header -->
+        <!-- Tiêu đề Sidebar -->
         <div class="p-5 border-b border-[#1a1b22] flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="p-1.5 bg-indigo-600/10 border border-indigo-500/20 rounded-lg text-indigo-400"><i data-lucide="piggy-bank" class="w-4 h-4"></i></div>
@@ -559,7 +561,7 @@ function injectSharedLayout(activePageId) {
           </div>
         </div>
 
-<!-- Sidebar User Status info -->
+        <!-- Thông tin trạng thái Người dùng trên Sidebar -->
         <div class="p-3 mx-4 my-3 bg-[#191b22]/50 rounded-xl border border-[#22242e]/60">
           <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-lg bg-[#222430] border border-[#2d3040] flex items-center justify-center font-bold text-slate-300 text-xs">
@@ -572,12 +574,12 @@ function injectSharedLayout(activePageId) {
           </div>
         </div>
 
-        <!-- Connection Status Badge -->
+        <!-- Huy hiệu Trạng thái Kết nối -->
         <div class="px-4 mb-3 flex justify-start">
           <div id="backend-status-badge" onclick="checkBackendConnection().then(connected => { if (connected) { showToast(state.language === 'vi' ? 'Đã kết nối Spring Boot!' : 'Spring Boot connected!'); loadUserData(); } else { showToast(state.language === 'vi' ? 'Lỗi kết nối Spring Boot (localhost:8080)' : 'Spring Boot offline (localhost:8080)', 'error'); } })"></div>
         </div>
 
-        <!-- Menu Items with Real A links -->
+        <!-- Các mục Menu với liên kết A thực tế -->
         <nav class="px-3 space-y-1">
           <a href="dashboard.html" class="w-full flex items-center justify-between py-2 rounded-lg transition-all font-semibold text-[11px] ${activePageId === 'dashboard' ? 'bg-[#1a1b23] text-white border-l-2 border-indigo-500 rounded-l-none pl-3' : 'text-slate-400 hover:text-slate-200 hover:bg-[#191b22]/40 pl-3.5'}">
             <span class="flex items-center gap-2.5"><i data-lucide="line-chart" class="w-3.5 h-3.5"></i> ${t.reportTab}</span>
@@ -597,11 +599,11 @@ function injectSharedLayout(activePageId) {
           </a>
           <a href="savings.html" class="w-full flex items-center py-2 rounded-lg transition-all font-semibold text-[11px] ${activePageId === 'savings' ? 'bg-[#1a1b23] text-white border-l-2 border-[#6366F1] rounded-l-none pl-3' : 'text-slate-400 hover:text-slate-200 hover:bg-[#191b22]/40 pl-3.5'}">
             <span class="flex items-center gap-2.5"><i data-lucide="piggy-bank" class="w-3.5 h-3.5"></i> ${t.savingsTab}</span>
-          </a
+          </a>
         </nav>
       </div>
 
-      <!-- Footer Settings and logout -->
+      <!-- Chân trang Cài đặt và Đăng xuất -->
       <div class="p-4 border-t border-[#1a1b22] space-y-3">
         <div class="flex items-center gap-2">
           <button onclick="toggleTheme()" class="flex-grow py-2 border border-[#1e202b] hover:border-[#272a39] hover:bg-[#1a1b23] rounded-lg text-[10px] font-bold text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer">
@@ -620,13 +622,13 @@ function injectSharedLayout(activePageId) {
       </div>
     </aside>
 
-    <!-- Main Content Workspace wrapper -->
+    <!-- Vùng bao quanh Không gian nội dung chính -->
     <main class="flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full custom-scrollbar bg-slate-50/40 dark:bg-zinc-950 text-slate-850 dark:text-slate-100">
       ${mainContentHTML}
     </main>
   `;
 
-  // Call initialization helpers
+  // Gọi các hàm hỗ trợ khởi tạo
   applyTheme();
   initClock();
   updateBackendBadge();
@@ -634,10 +636,11 @@ function injectSharedLayout(activePageId) {
 }
 window.injectSharedLayout = injectSharedLayout;
 
-// Probe on load
+// Thăm dò khi tải trang
 if (state.user) {
   checkBackendConnection();
 }
+
 // Hàm tính toán số dư thực tế trong ví (Dán vào cuối file state.js)
 function getWalletBalance() {
   return (state.transactions || []).reduce((acc, tx) => {
@@ -647,6 +650,6 @@ function getWalletBalance() {
 }
 window.getWalletBalance = getWalletBalance;
 
-// Auto run auth check on load
+// Tự động chạy kiểm tra xác thực khi tải trang
 checkAuth();
 applyTheme();

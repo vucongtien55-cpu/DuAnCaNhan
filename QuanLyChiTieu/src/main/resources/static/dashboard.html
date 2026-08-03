@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Báo cáo dòng tiền - Sổ Thu Chi Cá Nhân</title>
-  <!-- Google Fonts -->
+  <!-- Phông chữ Google -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-  <!-- Tailwind Play CDN -->
+  <!-- Thư viện Tailwind Play CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -23,26 +23,26 @@
   </script>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js for data visualization -->
+  <!-- Thư viện Chart.js để trực quan hóa dữ liệu -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
-<!-- Wrapper where state.js will inject the sidebar & layout around the inner HTML -->
+<!-- Vùng bao quanh nơi state.js sẽ chèn sidebar & bố cục xung quanh nội dung bên trong -->
 <div id="app-root">
 
-  <!-- Inside content to be wrapped -->
+  <!-- Nội dung bên trong được bao bọc -->
   <div class="space-y-6">
-    <!-- Top Title & Filter bar -->
+    <!-- Tiêu đề trên cùng & thanh bộ lọc -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200/60 dark:border-slate-800/60 pb-5">
       <div>
         <h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white" id="dashboard-heading">Báo cáo phân tích dòng tiền</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="dashboard-sub">Tổng quan tình hình thu chi & hạn mức ngân sách</p>
       </div>
 
-      <!-- Modern Month Selector Navigation -->
+      <!-- Điều hướng chọn Tháng hiện đại -->
       <div class="flex flex-wrap items-end justify-end gap-3 w-full sm:w-auto">
-        <!-- Fast Filters -->
+        <!-- Bộ lọc nhanh -->
         <div class="flex flex-col gap-1 w-full sm:w-auto">
           <span class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase" id="fast-filter-label">Bộ lọc nhanh</span>
           <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/60 p-1 rounded-xl border border-slate-200/40 dark:border-slate-800/40 shadow-sm">
@@ -51,7 +51,7 @@
           </div>
         </div>
 
-        <!-- Beautiful Date Selector Input (Matches user screenshot) -->
+        <!-- Ô nhập chọn ngày đẹp (Khớp với ảnh chụp màn hình người dùng) -->
         <div class="flex flex-col gap-1 w-full sm:w-auto">
           <span class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase" id="custom-picker-label">Ngày thực hiện</span>
           <div class="custom-month-wrapper relative flex items-center bg-white dark:bg-slate-950 border border-indigo-200 dark:border-indigo-950 rounded-xl px-3.5 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-sm w-full sm:w-56 group">
@@ -62,7 +62,7 @@
           </div>
         </div>
 
-        <!-- Beautiful Date Range Selector (Từ ngày ... đến ngày ...) -->
+        <!-- Bộ chọn khoảng ngày đẹp (Từ ngày ... đến ngày ...) -->
         <div class="flex flex-col gap-1 w-full sm:w-auto">
           <span class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase" id="range-picker-label">Lọc theo khoảng ngày</span>
           <div class="flex items-center gap-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-2 hover:border-indigo-300 dark:hover:border-indigo-900 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-sm w-full sm:w-auto">
@@ -78,7 +78,7 @@
           </div>
         </div>
 
-        <!-- Previous/Next Buttons -->
+        <!-- Các nút Trước/Sau -->
         <div class="flex flex-col gap-1 w-full sm:w-auto">
           <span class="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase text-center hidden sm:block" id="nav-filter-label">Di chuyển</span>
           <div class="flex items-center justify-between sm:justify-start gap-1 bg-slate-100 dark:bg-slate-900/60 p-1 rounded-xl border border-slate-200/40 dark:border-slate-800/40 shadow-sm">
@@ -93,9 +93,9 @@
       </div>
     </div>
 
-    <!-- Metric Cards -->
+    <!-- Thẻ thông số (Metric Cards) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      <!-- Total Balance Card -->
+      <!-- Thẻ Tổng số dư -->
       <div class="bg-indigo-600 text-white rounded-xl p-5 border border-indigo-500/20 flex flex-col justify-between min-h-[120px] relative overflow-hidden shadow-sm">
         <div class="flex items-center justify-between relative z-10">
           <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-100" id="balance-label">Số dư tài khoản</span>
@@ -105,7 +105,7 @@
         <span class="text-[9px] font-semibold text-indigo-200 relative z-10" id="balance-sub-label">Từ ngày tải dữ liệu hệ thống</span>
       </div>
 
-      <!-- Income Card -->
+      <!-- Thẻ Thu nhập -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 flex flex-col justify-between min-h-[120px] relative overflow-hidden shadow-sm">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500" id="income-label">Tổng thu nhập</span>
@@ -115,7 +115,7 @@
         <span class="text-[9px] font-semibold text-slate-400 dark:text-slate-500" id="income-desc-label">Từ giao dịch được duyệt</span>
       </div>
 
-      <!-- Expense Card -->
+      <!-- Thẻ Chi tiêu -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 flex flex-col justify-between min-h-[120px] relative overflow-hidden shadow-sm">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500" id="expense-label">Tổng chi tiêu</span>
@@ -127,28 +127,28 @@
       </div>
     </div>
 
-    <!-- Charts Area (Two Columns) -->
+    <!-- Khu vực biểu đồ (Hai cột) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- Left: Expenses by category breakdown -->
+      <!-- Bên trái: Phân tích chi tiêu theo danh mục -->
       <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm">
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100 dark:border-slate-800/40">
           <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2" id="pie-chart-heading"><i data-lucide="pie-chart" class="w-3.5 h-3.5 text-indigo-500"></i> Cơ cấu các khoản chi tiêu</h4>
         </div>
 
         <div class="flex flex-col sm:flex-row items-center justify-between gap-5">
-          <!-- Canvas for chart -->
+          <!-- Canvas cho biểu đồ -->
           <div class="relative w-40 h-40 flex-shrink-0 flex items-center justify-center">
             <canvas id="category-pie-chart" class="w-full h-full"></canvas>
-            <!-- Central layout when empty -->
+            <!-- Bố cục trung tâm khi trống -->
             <div id="pie-chart-placeholder" class="hidden absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-400 dark:text-slate-500 text-center p-3">Chưa có giao dịch chi tiêu</div>
           </div>
 
-          <!-- Labels detailed -->
+          <!-- Nhãn chi tiết -->
           <div class="flex-grow space-y-1 w-full max-h-[160px] overflow-y-auto custom-scrollbar" id="pie-labels-container"></div>
         </div>
       </div>
 
-      <!-- Right: Budget Warning Progress bars -->
+      <!-- Bên phải: Thanh tiến độ theo dõi hạn mức ngân sách -->
       <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm">
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100 dark:border-slate-800/40">
           <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2" id="budget-tracking-heading"><i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-500"></i> Theo dõi hạn mức ngân sách</h4>
@@ -159,8 +159,7 @@
       </div>
     </div>
 
-    <!-- Daily spending categories breakdown -->
-    <!-- Hạn mức chi tiêu theo ngày (Đã sửa) -->
+    <!-- Phân tích hạn mức chi tiêu theo ngày -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 pb-3 border-b border-slate-100 dark:border-slate-800/40 gap-3">
         <div class="flex items-center gap-2">
@@ -170,55 +169,54 @@
           <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase" id="daily-spending-sub">Theo dõi và cảnh báo vượt hạn mức</span>
         </div>
 
-        <!-- Dán đoạn này vào trong cụm flex items-center gap-3 của bạn -->
+        <!-- Bộ chọn ngày cụ thể -->
         <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
           <span class="text-[9px] font-bold text-slate-400 uppercase">Ngày:</span>
           <input type="date" id="daily-date-filter" onchange="updateDailySectionDate(this.value)" class="text-xs font-bold bg-transparent border-0 outline-none text-indigo-600 dark:text-indigo-400 cursor-pointer">
         </div>
 
-          <!-- Input hạn mức -->
-          <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
-            <span class="text-[9px] font-bold text-slate-400 uppercase">HM/Ngày:</span>
-            <input type="number" id="daily-limit-input" onchange="updateDailyLimit(this.value)" class="w-20 text-xs font-bold bg-transparent border-0 outline-none text-indigo-600 dark:text-indigo-400 font-mono">
-          </div>
-
-          <!-- Nút Lịch sử -->
-          <button onclick="toggleExceededOnly()" id="exceeded-only-btn" class="text-[10px] font-bold px-3 py-2 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 transition-all cursor-pointer bg-transparent">
-            Lịch sử vượt mức
-          </button>
+        <!-- Ô nhập hạn mức hằng ngày -->
+        <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
+          <span class="text-[9px] font-bold text-slate-400 uppercase">HM/Ngày:</span>
+          <input type="number" id="daily-limit-input" onchange="updateDailyLimit(this.value)" class="w-20 text-xs font-bold bg-transparent border-0 outline-none text-indigo-600 dark:text-indigo-400 font-mono">
         </div>
+
+        <!-- Nút bật tắt Lịch sử vượt mức -->
+        <button onclick="toggleExceededOnly()" id="exceeded-only-btn" class="text-[10px] font-bold px-3 py-2 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 transition-all cursor-pointer bg-transparent">
+          Lịch sử vượt mức
+        </button>
       </div>
 
       <div class="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar border border-slate-100 dark:border-slate-800/50 rounded-xl p-2 bg-slate-50/30 dark:bg-slate-900/10">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="daily-spending-container">
-          <!-- Nội dung các ngày sẽ nạp vào đây -->
+          <!-- Nội dung chi tiêu các ngày sẽ được nạp tại đây bằng Javascript -->
         </div>
       </div>
     </div>
 
-      <!-- Quick actions / Import default data (Col-span 4) -->
-      <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[250px]">
-        <div>
-          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2 mb-3 pb-3 border-b border-slate-100 dark:border-slate-800/40" id="quick-actions-heading"><i data-lucide="settings" class="w-3.5 h-3.5 text-indigo-500"></i> Thao tác nhanh</h4>
-          <p class="text-xs text-slate-400 dark:text-slate-500 leading-relaxed mb-4" id="quick-actions-desc">Bạn có thể khôi phục nhanh bộ dữ liệu thu chi mẫu ban đầu để tham khảo và trải nghiệm cách hệ thống phân tích báo cáo.</p>
-        </div>
+    <!-- Thao tác nhanh / Nhập dữ liệu mặc định (Col-span 4) -->
+    <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[250px]">
+      <div>
+        <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2 mb-3 pb-3 border-b border-slate-100 dark:border-slate-800/40" id="quick-actions-heading"><i data-lucide="settings" class="w-3.5 h-3.5 text-indigo-500"></i> Thao tác nhanh</h4>
+        <p class="text-xs text-slate-400 dark:text-slate-500 leading-relaxed mb-4" id="quick-actions-desc">Bạn có thể khôi phục nhanh bộ dữ liệu thu chi mẫu ban đầu để tham khảo và trải nghiệm cách hệ thống phân tích báo cáo.</p>
+      </div>
 
-        <div class="space-y-2">
-          <a href="record.html" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider border border-transparent" id="btn-new-record">
-            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Tạo ghi chép mới
-          </a>
-          <button onclick="restoreDemoData()" class="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-800 cursor-pointer" id="btn-restore-demo">
-            <i data-lucide="refresh-cw" class="w-3 h-3 text-indigo-500 animate-hover"></i> Khôi phục mẫu dữ liệu
-          </button>
-        </div>
+      <div class="space-y-2">
+        <a href="record.html" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider border border-transparent" id="btn-new-record">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Tạo ghi chép mới
+        </a>
+        <button onclick="restoreDemoData()" class="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-800 cursor-pointer" id="btn-restore-demo">
+          <i data-lucide="refresh-cw" class="w-3 h-3 text-indigo-500 animate-hover"></i> Khôi phục mẫu dữ liệu
+        </button>
       </div>
     </div>
-
   </div>
 
 </div>
 
-<!-- SCRIPTS -->
+</div>
+
+<!-- CÁC TẬP TIN SCRIPT -->
 <script src="js/translations.js?v=2026_01"></script>
 <script src="js/data.js?v=2026_01"></script>
 <script src="js/state.js?v=2026_01"></script>
