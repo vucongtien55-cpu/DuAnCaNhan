@@ -17,19 +17,23 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    // Lấy danh sách danh mục thuộc về người dùng theo email.
     public List<Category> getCategoriesByUser(String email) {
         return categoryRepository.findByUserEmail(email);
     }
 
+
+    // Thêm một danh mục mới vào database.
     public Category addCategory(Category category) {
         return categoryRepository.save(category);
     }
 
+    // Xóa danh mục theo ID sau khi kiểm tra quyền sở hữu.
     public void deleteCategory(Long id, String email) {
         Category c = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy danh mục."));
         if (!c.getUserEmail().equals(email)) {
-            throw new SecurityException("Unauthorized access to delete this category");
+            throw new SecurityException("Không có quyền xóa danh mục này.");
         }
         categoryRepository.delete(c);
     }

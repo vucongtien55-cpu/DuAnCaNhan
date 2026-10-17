@@ -18,10 +18,12 @@ public class BudgetService {
         this.budgetRepository = budgetRepository;
     }
 
+    // Lấy danh sách ngân sách của người dùng theo email.
     public List<Budget> getBudgetsByUser(String email) {
         return budgetRepository.findByUserEmail(email);
     }
 
+    // Lưu ngân sách mới hoặc cập nhật ngân sách đã tồn tại.
     public Budget saveOrUpdateBudget(Budget budget) {
         Optional<Budget> existing = budgetRepository.findByUserEmailAndCategory(budget.getUserEmail(), budget.getCategory());
         if (existing.isPresent()) {
@@ -32,11 +34,12 @@ public class BudgetService {
         return budgetRepository.save(budget);
     }
 
+    // Xóa ngân sách theo ID sau khi kiểm tra quyền sở hữu
     public void deleteBudget(Long id, String email) {
         Budget b = budgetRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Budget not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy ngân sách."));
         if (!b.getUserEmail().equals(email)) {
-            throw new SecurityException("Unauthorized access to delete this budget");
+            throw new SecurityException("Không có quyền xóa ngân sách này");
         }
         budgetRepository.delete(b);
     }

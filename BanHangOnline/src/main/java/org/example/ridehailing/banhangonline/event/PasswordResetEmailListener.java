@@ -2,6 +2,7 @@ package org.example.ridehailing.banhangonline.event;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
@@ -15,6 +16,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Component
+@ConditionalOnBean(JavaMailSender.class)
 public class PasswordResetEmailListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordResetEmailListener.class);
