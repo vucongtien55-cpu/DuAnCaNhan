@@ -17,14 +17,16 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
+    //Laassy danh sách giao dịch của một người dùng theo email
     public List<Transaction> getTransactionsByUser(String email) {
         return transactionRepository.findByUserEmailOrderByDateDesc(email);
     }
-
+    //Thêm giao dịch
     public Transaction addTransaction(Transaction transaction) {
         return transactionRepository.save(transaction);
     }
 
+    //Xóa giao dịch
     public void deleteTransaction(Long id, String email) {
         Transaction tx = transactionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
@@ -34,6 +36,7 @@ public class TransactionService {
         transactionRepository.delete(tx);
     }
 
+    //Xóa tất cả giao dịch của người dùng theo email
     public void clearAllTransactions(String email) {
         List<Transaction> list = transactionRepository.findByUserEmailOrderByDateDesc(email);
         transactionRepository.deleteAll(list);

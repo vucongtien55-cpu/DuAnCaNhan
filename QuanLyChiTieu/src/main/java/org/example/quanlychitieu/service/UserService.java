@@ -17,6 +17,7 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    //Xác thực người dùng khi đăng nhập
     public Optional<User> authenticate(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent() && userOpt.get().getPassword().equals(password)) {
@@ -25,13 +26,14 @@ public class UserService {
         return Optional.empty();
     }
 
+    //Đăng ký tài khoản người dùng mới
     public User register(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Email is already registered!");
         }
         return userRepository.save(user);
     }
-
+    //Tìm người dùng theo email
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }

@@ -17,11 +17,11 @@ public class BudgetService {
     public BudgetService(BudgetRepository budgetRepository) {
         this.budgetRepository = budgetRepository;
     }
-
+    //Láy danh sách ngân sách của nguofi dùng theo email
     public List<Budget> getBudgetsByUser(String email) {
         return budgetRepository.findByUserEmail(email);
     }
-
+    //Lưu ngân sách mới hặc cập nhật ngân sách đã tồn tại
     public Budget saveOrUpdateBudget(Budget budget) {
         Optional<Budget> existing = budgetRepository.findByUserEmailAndCategory(budget.getUserEmail(), budget.getCategory());
         if (existing.isPresent()) {
@@ -31,7 +31,7 @@ public class BudgetService {
         }
         return budgetRepository.save(budget);
     }
-
+    //Xóa ngân sách theo id sau khi kiểm tra quyền sở hữu
     public void deleteBudget(Long id, String email) {
         Budget b = budgetRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Budget not found"));
