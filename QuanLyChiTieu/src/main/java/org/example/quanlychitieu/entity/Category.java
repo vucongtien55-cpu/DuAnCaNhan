@@ -23,7 +23,7 @@ public class Category {
     private String name;
 
     @Column(nullable = false)
-    private String type; // 'income' or 'expense'
+    private String type;
 
     @Column(nullable = false)
     private String icon;

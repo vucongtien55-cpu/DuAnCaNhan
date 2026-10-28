@@ -69,19 +69,28 @@ function setHeader() {
     ["#/products", "Sản phẩm"]
   ];
   const userLinks = session ? [
-    ...(session.user.role === "CUSTOMER" ? [["#/cart", "Giỏ hàng"], ["#/orders", "Đơn hàng"]] : []),
+    ...(session.user.role === "CUSTOMER" ? [["#/orders", "Đơn hàng"]] : []),
     ...(session.user.role === "ADMIN" || session.user.role === "SHOP_OWNER" || session.user.role === "EMPLOYEE"
-      ? [["#/workspace", "Khu vực quản lý"]] : []),
+      ? [["#/workspace", "Khu quản lý"]] : []),
     ...(session.user.role === "CUSTOMER" ? [["#/workspace", "Mở cửa hàng"]] : []),
     ["#/account", "Tài khoản"]
-  ] : [["#/login", "Đăng nhập"], ["#/register", "Tạo tài khoản"]];
+  ] : [];
   nav.innerHTML = [...commonLinks, ...userLinks]
     .map(([href, label]) => `<a href="${href}">${label}</a>`)
     .join("");
+  document.querySelectorAll(".header-search").forEach((element) => element.remove());
+  const headerSearch = `<form class="header-search" data-form="header-search" role="search">
+    <label class="visually-hidden" for="header-search-input">Tìm sản phẩm</label>
+    <input id="header-search-input" name="name" type="search" placeholder="Tìm sản phẩm, danh mục hoặc cửa hàng">
+    <button class="button button-primary button-small" type="submit">Tìm kiếm</button>
+  </form>`;
+  nav.insertAdjacentHTML("afterend", headerSearch);
   accountSlot.innerHTML = session
-    ? `<span class="account-chip">${escapeHtml(session.user.fullName)} · ${escapeHtml(roleNames[session.user.role] || "Tài khoản")}</span>
+    ? `<a class="cart-link" href="#/cart" aria-label="Giỏ hàng">Giỏ hàng</a>
+       <span class="account-chip">${escapeHtml(session.user.fullName)} · ${escapeHtml(roleNames[session.user.role] || "Tài khoản")}</span>
        <button type="button" class="button button-quiet button-small" data-action="logout">Đăng xuất</button>`
-    : `<a class="button button-primary button-small" href="#/login">Đăng nhập</a>`;
+    : `<a class="button button-quiet button-small" href="#/login">Đăng nhập</a>
+       <a class="button button-primary button-small" href="#/register">Đăng ký</a>`;
 }
 
 function field(label, name, options = {}) {
@@ -269,27 +278,104 @@ function renderRegister() {
 }
 
 async function renderHome(view) {
-  await loadPage((signal) => catalogApi.categories(signal), (categories) => `
-    <section class="hero">
-      <div class="hero-copy"><span class="eyebrow">Mua sắm nhiều cửa hàng</span>
-        <h1>Tìm sản phẩm phù hợp từ các cửa hàng bạn tin chọn.</h1>
-        <p>Khám phá danh mục, tìm theo tên hoặc tra cứu cửa hàng đang hoạt động.</p>
-        <div class="hero-actions"><a class="button button-primary" href="#/products">Tìm sản phẩm</a>
-          <a class="button button-secondary" href="#/shops">Tìm cửa hàng</a></div>
-      </div><div class="hero-aside"><span class="hero-aside-label">Marketplace</span><strong>Mua sắm<br>đơn giản hơn.</strong><span>Dữ liệu được tải trực tiếp từ hệ thống.</span></div>
+  const [categoriesResult, productsResult] = await Promise.allSettled([
+    catalogApi.categories(view.signal),
+    catalogApi.searchCatalog({ page: 0, size: 8, sort: "newest" }, view.signal)
+  ]);
+  if (!isCurrent(view)) return;
+
+  main.innerHTML = `
+    <section class="market-hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Sàn mua sắm nhiều cửa hàng</span>
+        <h1>Mua hàng dễ hơn, chọn shop tin cậy hơn.</h1>
+        <p>Khám phá sản phẩm mới, danh mục đang mở bán và các cửa hàng hoạt động trực tiếp từ hệ thống Marketplace.</p>
+        <form class="home-search" data-form="home-search" role="search">
+          <label class="visually-hidden" for="home-search-input">Tìm sản phẩm</label>
+          <input id="home-search-input" name="name" type="search" placeholder="Bạn muốn tìm sản phẩm gì hôm nay?">
+          <button class="button button-primary" type="submit">Tìm kiếm</button>
+        </form>
+        <div class="hero-actions">
+          <a class="button button-secondary" href="#/products">Khám phá sản phẩm</a>
+          <a class="button button-quiet" href="#/shops">Tìm cửa hàng</a>
+        </div>
+      </div>
+      <div class="market-hero-panel" aria-label="Thông tin nổi bật">
+        <span>Marketplace</span>
+        <strong>Sản phẩm thật từ dữ liệu API</strong>
+        <p>Danh mục và sản phẩm trên trang chủ được tải từ backend hiện có.</p>
+      </div>
     </section>
-    <section class="content-section">
-      <div class="section-heading"><div><span class="eyebrow">Khám phá</span><h2>Danh mục sản phẩm</h2></div>
-        <a href="#/products">Tìm theo giá <span aria-hidden="true">→</span></a></div>
-      ${categories.length ? `<div class="category-grid">${categories.map((category) => `
-        <a class="category-card" href="#/products?category=${category.id}">
-          <span class="category-symbol" aria-hidden="true">${escapeHtml((category.name || "?").slice(0, 1))}</span>
-          <strong>${escapeHtml(category.name)}</strong><span>${escapeHtml(category.description || "Xem sản phẩm trong danh mục")}</span>
-        </a>`).join("")}</div>` : emptyState("Chưa có danh mục đang hoạt động.")}
+
+    <section class="content-section home-section">
+      <div class="section-heading">
+        <div><span class="eyebrow">Danh mục</span><h2>Khám phá theo ngành hàng</h2></div>
+        <a href="#/products">Xem tất cả <span aria-hidden="true">→</span></a>
+      </div>
+      ${homeCategories(categoriesResult)}
     </section>
-    <section class="callout"><div><h2>Bạn đang tìm cửa hàng?</h2><p>Tra cứu tên cửa hàng để xem thông tin và sản phẩm đang bán.</p></div>
-      <a class="button button-secondary" href="#/shops">Khám phá cửa hàng</a></section>
-  `, "#/", view);
+
+    <section class="content-section home-section">
+      <div class="section-heading">
+        <div><span class="eyebrow">Sản phẩm mới</span><h2>Gợi ý từ Marketplace</h2></div>
+        <a href="#/products?sort=newest">Xem thêm <span aria-hidden="true">→</span></a>
+      </div>
+      ${homeProducts(productsResult)}
+    </section>
+
+    <section class="content-section home-section">
+      <div class="section-heading">
+        <div><span class="eyebrow">Cửa hàng</span><h2>Tìm cửa hàng đang hoạt động</h2></div>
+        <a href="#/shops">Tìm cửa hàng <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="shop-discovery">
+        <div>
+          <strong>Chưa có API cửa hàng nổi bật công khai.</strong>
+          <p>Backend hiện hỗ trợ tìm cửa hàng theo tên qua API thật. Trang chủ không hiển thị dữ liệu cửa hàng giả.</p>
+        </div>
+        <a class="button button-secondary" href="#/shops">Tra cứu cửa hàng</a>
+      </div>
+    </section>`;
+}
+
+function homeCategories(result) {
+  if (result.status === "rejected") {
+    return `<div class="error-panel"><h2>Chưa tải được danh mục</h2><p>${escapeHtml(result.reason?.message || "Vui lòng thử lại sau.")}</p></div>`;
+  }
+  const categories = result.value || [];
+  return categories.length ? `<div class="category-grid home-category-grid">${categories.slice(0, 8).map((category) => `
+    <a class="category-card home-category-card" href="#/products?category=${category.id}">
+      <span class="category-symbol" aria-hidden="true">${escapeHtml((category.name || "?").slice(0, 1))}</span>
+      <strong>${escapeHtml(category.name)}</strong>
+      <span>${escapeHtml(category.description || "Xem sản phẩm trong danh mục")}</span>
+    </a>`).join("")}</div>` : emptyState("Chưa có danh mục đang hoạt động.");
+}
+
+function homeProducts(result) {
+  if (result.status === "rejected") {
+    return `<div class="error-panel"><h2>Chưa tải được sản phẩm</h2><p>${escapeHtml(result.reason?.message || "Vui lòng thử lại sau.")}</p></div>`;
+  }
+  const products = result.value?.content || [];
+  return products.length ? `<div class="product-grid home-product-grid">${products.map(homeProductCard).join("")}</div>`
+    : emptyState("Chưa có sản phẩm đang được mở bán.");
+}
+
+function homeProductCard(product) {
+  return `<article class="product-card home-product-card">
+    <a class="product-image" href="#/product/${product.id}" aria-label="Xem ${escapeHtml(product.name)}">
+      ${product.imageUrl ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy">`
+        : `<span class="image-placeholder" aria-hidden="true">Ảnh sản phẩm</span>`}
+    </a>
+    <div class="product-card-body">
+      <a class="product-title" href="#/product/${product.id}">${escapeHtml(product.name)}</a>
+      <strong class="product-price">${money(product.price)}</strong>
+      ${product.shopId ? `<span class="muted">Cửa hàng #${escapeHtml(product.shopId)}</span>` : ""}
+      <span class="stock-label ${product.stockQuantity > 0 ? "" : "out-of-stock"}">
+        ${product.stockQuantity > 0 ? `Còn ${escapeHtml(product.stockQuantity)} sản phẩm` : "Hết hàng"}
+      </span>
+      <a class="button button-secondary button-small" href="#/product/${product.id}">Xem chi tiết</a>
+    </div>
+  </article>`;
 }
 
 async function renderShops(initialName = "") {
@@ -936,6 +1022,12 @@ async function handleSubmit(event) {
         notify("Đã thay đổi mật khẩu. Vui lòng đăng nhập.");
         location.hash = "#/login";
         break;
+      case "header-search":
+      case "home-search": {
+        const keyword = values.name?.trim();
+        location.hash = keyword ? `#/products?name=${encodeURIComponent(keyword)}` : "#/products";
+        break;
+      }
       case "shop-search":
         await searchShops(values.name.trim());
         break;

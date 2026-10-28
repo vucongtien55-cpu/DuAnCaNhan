@@ -18,12 +18,20 @@ public class SavingsJarService {
         this.savingsJarRepository = savingsJarRepository;
     }
 
+
     //Lấy danh sách tất cả  hũ tiết kiệm thuộc về người dùng theo email
+
+    // Lấy danh sách tất cả hũ tiết kiệm thuộc về người dùng theo email.
+
     public List<SavingsJar> getSavingsJarsByUser(String email) {
         return savingsJarRepository.findByUserEmail(email);
     }
 
+
     //Lưu hũ tiết kiệm mới hoặc cập nhật hũ đã tồn tại
+
+    // Lưu hũ tiết kiệm mới hoặc cập nhật hũ đã tồn tại.
+
     public SavingsJar saveOrUpdateSavingsJar(SavingsJar jar) {
         Optional<SavingsJar> existing = savingsJarRepository.findByUserEmailAndName(jar.getUserEmail(), jar.getName());
         if (existing.isPresent()) {
@@ -37,7 +45,11 @@ public class SavingsJarService {
         return savingsJarRepository.save(jar);
     }
 
+
     //Xóa hũ tieets kiệm
+
+    //Xóa hũ tiết kiệm
+
     public void deleteSavingsJar(Long id, String email) {
         SavingsJar jar = savingsJarRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Savings jar not found"));
