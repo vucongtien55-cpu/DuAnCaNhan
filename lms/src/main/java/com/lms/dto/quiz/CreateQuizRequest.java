@@ -29,7 +29,7 @@ public record CreateQuizRequest(
 
         @Positive @Max(10) Integer maxAttempts,
 
-        boolean shuffleQuestions,
+        Boolean shuffleQuestions,
 
         @Valid List<@Valid QuizQuestionRequest> questions) {
 }

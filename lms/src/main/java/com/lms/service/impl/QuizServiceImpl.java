@@ -66,7 +66,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setStartTime(request.startTime());
         quiz.setEndTime(request.endTime());
         quiz.setMaxAttempts(request.maxAttempts() == null ? 1 : request.maxAttempts());
-        quiz.setShuffleQuestions(request.shuffleQuestions());
+        quiz.setShuffleQuestions(Boolean.TRUE.equals(request.shuffleQuestions()));
         quiz.setPublished(false);
         if (request.questions() != null) {
             quiz.getQuestions().addAll(buildQuestions(quiz, request.questions()));
@@ -98,7 +98,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setStartTime(request.startTime());
         quiz.setEndTime(request.endTime());
         quiz.setMaxAttempts(request.maxAttempts());
-        quiz.setShuffleQuestions(request.shuffleQuestions());
+        quiz.setShuffleQuestions(Boolean.TRUE.equals(request.shuffleQuestions()));
         return QuizResponse.from(quiz);
     }
 

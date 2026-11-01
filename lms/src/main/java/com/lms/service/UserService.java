@@ -28,6 +28,9 @@ public interface UserService {
 
     Page<UserResponse> list(Pageable pageable);
 
+    /** Tìm theo từ khóa (tên đăng nhập, họ tên, email), vai trò và trạng thái; tham số null là không lọc. */
+    Page<UserResponse> search(String keyword, RoleName role, Boolean enabled, Pageable pageable);
+
     UserResponse updateProfile(Long id, @Valid UpdateUserRequest request);
 
     /** Người dùng tự đổi mật khẩu, phải đúng mật khẩu cũ. */

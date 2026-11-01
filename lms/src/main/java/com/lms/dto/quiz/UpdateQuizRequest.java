@@ -22,5 +22,5 @@ public record UpdateQuizRequest(
 
         @NotNull @Positive @Max(10) Integer maxAttempts,
 
-        boolean shuffleQuestions) {
+        Boolean shuffleQuestions) {
 }

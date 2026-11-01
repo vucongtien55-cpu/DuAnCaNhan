@@ -1,6 +1,7 @@
 package com.lms.service.impl;
 
 import com.lms.dto.enrollment.EnrollmentResponse;
+import com.lms.dto.user.UserSummaryResponse;
 import com.lms.entity.CourseSection;
 import com.lms.entity.Enrollment;
 import com.lms.entity.User;
@@ -13,8 +14,12 @@ import com.lms.exception.ResourceNotFoundException;
 import com.lms.repository.CourseSectionRepository;
 import com.lms.repository.EnrollmentRepository;
 import com.lms.repository.UserRepository;
+import com.lms.repository.UserSpecifications;
 import com.lms.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -138,6 +143,24 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public List<EnrollmentResponse> listMyEnrollments(Long actorId) {
         User student = findActiveUser(actorId);
         return enrollmentRepository.findByStudentId(student.getId()).stream().map(EnrollmentResponse::from).toList();
+    }
+
+    @Override
+    public Page<UserSummaryResponse> searchStudentCandidates(Long actorId, Long sectionId, String keyword,
+                                                             Pageable pageable) {
+        User actor = findActiveUser(actorId);
+        CourseSection section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lớp học phần", sectionId));
+        requireManager(actor, section);
+        if (keyword == null || keyword.trim().length() < MIN_KEYWORD_LENGTH) {
+            throw new BusinessException("Từ khóa tìm sinh viên cần tối thiểu " + MIN_KEYWORD_LENGTH + " ký tự");
+        }
+        Specification<User> spec = Specification.allOf(
+                UserSpecifications.matchesKeyword(keyword),
+                UserSpecifications.hasRole(RoleName.STUDENT),
+                UserSpecifications.hasEnabled(true),
+                UserSpecifications.notEnrolledIn(sectionId));
+        return userRepository.findAll(spec, pageable).map(UserSummaryResponse::from);
     }
 
     // ---------- helpers ----------

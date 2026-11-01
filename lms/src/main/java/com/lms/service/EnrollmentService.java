@@ -1,8 +1,11 @@
 package com.lms.service;
 
 import com.lms.dto.enrollment.EnrollmentResponse;
+import com.lms.dto.user.UserSummaryResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -31,4 +34,12 @@ public interface EnrollmentService {
 
     /** Lịch sử đăng ký của chính sinh viên, gồm cả các lớp đã rút. */
     List<EnrollmentResponse> listMyEnrollments(Long actorId);
+
+    /**
+     * Admin hoặc giảng viên phụ trách tìm sinh viên đang hoạt động, chưa có đăng ký còn hiệu lực trong lớp, để thêm vào
+     * lớp. Từ khóa tối thiểu {@link #MIN_KEYWORD_LENGTH} ký tự để không thể liệt kê toàn bộ sinh viên.
+     */
+    Page<UserSummaryResponse> searchStudentCandidates(Long actorId, Long sectionId, String keyword, Pageable pageable);
+
+    int MIN_KEYWORD_LENGTH = 2;
 }

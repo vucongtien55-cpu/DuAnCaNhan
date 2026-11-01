@@ -11,10 +11,12 @@ import com.lms.exception.BusinessException;
 import com.lms.exception.ResourceNotFoundException;
 import com.lms.repository.RoleRepository;
 import com.lms.repository.UserRepository;
+import com.lms.repository.UserSpecifications;
 import com.lms.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +69,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username)
                 .map(UserResponse::from)
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng", username));
+    }
+
+    @Override
+    public Page<UserResponse> search(String keyword, RoleName role, Boolean enabled, Pageable pageable) {
+        Specification<User> spec = Specification.allOf(UserSpecifications.matchesKeyword(keyword),
+                UserSpecifications.hasRole(role), UserSpecifications.hasEnabled(enabled));
+        return userRepository.findAll(spec, pageable).map(UserResponse::from);
     }
 
     @Override

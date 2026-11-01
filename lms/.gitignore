@@ -38,3 +38,8 @@ out/
 
 ### LMS uploads ###
 uploads/
+
+### Secrets / cấu hình cục bộ ###
+.env
+.env.*
+!.env.example

@@ -1,6 +1,9 @@
 package com.lms.security;
 
+import com.lms.ratelimit.RateLimiters;
+import com.lms.ratelimit.WriteRateLimitFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -23,12 +27,17 @@ public class SecurityConfig {
 
     static final String LOGIN_PATH = "/api/auth/login";
 
+    private static final String[] DOCS_PATHS = {"/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"};
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    DatabaseJwtAuthenticationConverter authenticationConverter,
                                                    RestAuthenticationEntryPoint entryPoint,
                                                    RestAccessDeniedHandler accessDeniedHandler,
-                                                   CorsConfigurationSource corsConfigurationSource) throws Exception {
+                                                   CorsConfigurationSource corsConfigurationSource,
+                                                   RateLimiters rateLimiters,
+                                                   ErrorResponseWriter errorResponseWriter,
+                                                   @Value("${app.docs.enabled:false}") boolean docsEnabled) throws Exception {
         http
                 // CSRF chỉ nhắm vào xác thực tự động của trình duyệt (cookie/session). API này hoàn toàn stateless và
                 // chỉ chấp nhận token trong header Authorization do frontend gắn tay: không có session, không có cookie
@@ -39,12 +48,18 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, LOGIN_PATH).permitAll()
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().denyAll())
+                .authorizeHttpRequests(auth -> {
+                    // Tài liệu API chỉ mở (GET) khi bật cấu hình, và không mở thêm đường dẫn nào khác
+                    if (docsEnabled) {
+                        auth.requestMatchers(HttpMethod.GET, DOCS_PATHS).permitAll();
+                    }
+                    auth
+                            .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, LOGIN_PATH).permitAll()
+                            .requestMatchers("/error").permitAll()
+                            .requestMatchers("/api/**").authenticated()
+                            .anyRequest().denyAll();
+                })
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
@@ -53,6 +68,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter)));
+        // Giới hạn tần suất ghi theo người dùng đã xác thực: phải đứng sau bước đọc JWT
+        http.addFilterAfter(new WriteRateLimitFilter(rateLimiters, errorResponseWriter), BearerTokenAuthenticationFilter.class);
         return http.build();
     }
 
