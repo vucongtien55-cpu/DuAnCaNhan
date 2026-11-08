@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaMart - Không gian mua sắm tinh tế từ xưởng chế tác thủ công</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Site Header -->
+    <header class="site-header" id="siteHeader"></header>
+
+    <!-- Hero Section (Exact Replica of Screenshot) -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-grid">
+                <div>
+                    <span class="hero-subtag" data-i18n="hero_tag">TUYỂN CHỌN NGHỆ NHÂN & THƯƠNG HIỆU VIỆT</span>
+                    <h1 class="hero-title" data-i18n="hero_title">Không gian mua sắm tinh tế từ những xưởng chế tác thủ công.</h1>
+                    <p class="hero-description" data-i18n="hero_desc">
+                        Mỗi sản phẩm trên NovaMart đều đến từ những xưởng nghề uy tín, được kiểm định chất lượng nghiêm ngặt và minh bạch nguồn gốc.
+                    </p>
+                    <div class="hero-cta-group">
+                        <a href="/products.html" class="btn-pill-white" data-i18n="hero_explore">Khám phá bộ sưu tập</a>
+                        <a href="/seller-apply.html" class="btn-pill-dark" data-i18n="hero_open_shop">Mở gian hàng kinh doanh</a>
+                    </div>
+                    <div class="hero-trust-badges">
+                        <div>
+                            <div class="trust-badge-title" data-i18n="trust_badge_1_title">100% Chính hãng</div>
+                            <div class="trust-badge-sub" data-i18n="trust_badge_1_sub">Xác thực từ gian hàng</div>
+                        </div>
+                        <div>
+                            <div class="trust-badge-title" data-i18n="trust_badge_2_title">Giao toàn quốc</div>
+                            <div class="trust-badge-sub" data-i18n="trust_badge_2_sub">Kiểm hàng trước COD</div>
+                        </div>
+                        <div>
+                            <div class="trust-badge-title" data-i18n="trust_badge_3_title">Đổi trả 7 ngày</div>
+                            <div class="trust-badge-sub" data-i18n="trust_badge_3_sub">Bảo vệ quyền lợi khách</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1000&q=80" 
+                         alt="NovaMart Artisanal Crafts" 
+                         class="hero-art-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Search Bar -->
+    <div class="container search-bar-floating-wrapper">
+        <div class="search-bar-card">
+            <div class="search-input-group">
+                <span class="search-input-icon">🔍</span>
+                <input type="text" 
+                       id="searchInput" 
+                       class="search-input-field" 
+                       placeholder="Tìm kiếm sản phẩm gốm, đồ da, tai nghe, ấm trà..."
+                       data-i18n-placeholder="search_placeholder">
+            </div>
+            <button class="btn-search-primary" onclick="handleSearch()" data-i18n="search_btn">Tìm kiếm</button>
+            <div class="search-quick-tags">
+                <span data-i18n="search_suggestions">Gợi ý:</span>
+                <span class="search-tag-pill" onclick="searchKeyword('Ấm trà cát')">Ấm trà cát</span>
+                <span class="search-tag-pill" onclick="searchKeyword('Túi da veg-tan')">Túi da veg-tan</span>
+                <span class="search-tag-pill" onclick="searchKeyword('Tai nghe audiophile')">Tai nghe audiophile</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trending Categories Section -->
+    <section class="section-block" style="padding-top: 70px;">
+        <div class="container">
+            <div class="section-header-row">
+                <div>
+                    <div class="section-eyebrow" data-i18n="popular_categories_eyebrow">DANH MỤC THỊNH HÀNH</div>
+                    <h2 class="section-title-main" data-i18n="popular_categories_title">Khám phá theo chuyên mục</h2>
+                </div>
+                <a href="/products.html" class="view-all-link">
+                    <span data-i18n="view_all">Xem tất cả</span> →
+                </a>
+            </div>
+
+            <div class="categories-grid" id="categoriesContainer">
+                <!-- Dynamically loaded categories -->
+                <div class="category-card" onclick="location.href='/products.html'">
+                    <span class="category-card-count">ĐANG TẢI...</span>
+                    <h3 class="category-card-name">Danh mục sản phẩm</h3>
+                    <p class="category-card-desc">Đang nạp dữ liệu từ hệ thống...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section class="section-block" style="background-color: var(--bg-white);">
+        <div class="container">
+            <div class="section-header-row">
+                <div>
+                    <div class="section-eyebrow" data-i18n="featured_products_eyebrow">BỘ SƯU TẬP TIÊU BIỂU</div>
+                    <h2 class="section-title-main" data-i18n="featured_products_title">Tác phẩm thủ công tuyển chọn</h2>
+                </div>
+                <a href="/products.html" class="view-all-link">
+                    <span data-i18n="view_all">Xem tất cả</span> →
+                </a>
+            </div>
+
+            <div class="products-grid" id="featuredProductsContainer">
+                <!-- Dynamically loaded products -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Site Footer -->
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <!-- Scripts -->
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        function searchKeyword(keyword) {
+            window.location.href = `/products.html?search=${encodeURIComponent(keyword)}`;
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                searchKeyword(query);
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
+
+        // Load Categories from API
+        async function loadCategories() {
+            try {
+                const res = await apiRequest('/categories');
+                const container = document.getElementById('categoriesContainer');
+                if (res && res.data && res.data.length > 0) {
+                    container.innerHTML = res.data.map(cat => `
+                        <div class="category-card" onclick="location.href='/products.html?categoryId=${cat.id}'">
+                            <span class="category-card-count">CHUYÊN MỤC</span>
+                            <h3 class="category-card-name">${cat.name}</h3>
+                            <p class="category-card-desc">${cat.description || 'Tuyển chọn từ những nghệ nhân tâm huyết nhất.'}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error("Error loading categories:", e);
+            }
+        }
+
+        // Load Featured Products from API
+        async function loadFeaturedProducts() {
+            try {
+                const res = await apiRequest('/products?size=8');
+                const container = document.getElementById('featuredProductsContainer');
+                if (res && res.data && res.data.content && res.data.content.length > 0) {
+                    container.innerHTML = res.data.content.map(p => {
+                        const img = (p.imageUrls && p.imageUrls.length > 0) ? p.imageUrls[0] : 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80';
+                        return `
+                            <div class="product-card">
+                                <div class="product-card-img-wrap" onclick="location.href='/product-detail.html?id=${p.id}'" style="cursor: pointer;">
+                                    <img src="${img}" alt="${p.name}" class="product-card-img">
+                                    <span class="product-card-badge">${p.categoryName || 'Thủ công'}</span>
+                                </div>
+                                <div class="product-card-body">
+                                    <div class="product-card-shop">${p.shopName}</div>
+                                    <h4 class="product-card-title">
+                                        <a href="/product-detail.html?id=${p.id}">${p.name}</a>
+                                    </h4>
+                                    <div class="product-card-price-row">
+                                        <div class="product-card-price">${formatPrice(p.minPrice)}</div>
+                                        <a href="/product-detail.html?id=${p.id}" class="btn-card-buy">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+                            Chưa có sản phẩm nào được đăng bán. Mời các nghệ nhân đăng ký mở gian hàng!
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.error("Error loading products:", e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadFeaturedProducts();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng điều khiển Quản Trị Viên - NovaMart Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-banner {
+            background: #111;
+            color: white;
+            padding: 36px 40px;
+            border-radius: var(--radius-lg);
+            margin-top: 30px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .admin-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .admin-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+        .admin-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: #111;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container">
+        <!-- Admin Banner -->
+        <div class="admin-banner">
+            <div>
+                <span class="badge" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 8px;">HỆ THỐNG QUẢN TRỊ TOÀN SÀN</span>
+                <h1 style="font-size: 28px; font-weight: 800;">NovaMart Admin Portal</h1>
+                <p style="font-size: 14px; color: var(--text-muted-dark); margin-top: 4px;">Kiểm duyệt gian hàng, quản lý danh mục và vận hành sàn thương mại điện tử</p>
+            </div>
+            <div>
+                <span class="badge badge-success" style="padding: 8px 16px; font-size: 13px;">Hệ thống đang hoạt động tốt</span>
+            </div>
+        </div>
+
+        <!-- Management Cards -->
+        <div class="admin-nav-grid">
+            <div class="admin-card">
+                <div style="font-size: 36px; margin-bottom: 12px;">🏪</div>
+                <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Kiểm duyệt & Quản lý Gian Hàng</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px; flex: 1;">
+                    Duyệt các đơn đăng ký mở gian hàng mới của người bán, tạm khóa gian hàng vi phạm và quản lý danh sách Shop trên sàn.
+                </p>
+                <a href="/admin-shops.html" class="btn btn-primary btn-sm">Quản lý Gian Hàng →</a>
+            </div>
+
+            <div class="admin-card">
+                <div style="font-size: 36px; margin-bottom: 12px;">📂</div>
+                <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Quản lý Danh Mục Sản Phẩm</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px; flex: 1;">
+                    Tạo danh mục mới, chỉnh sửa cây danh mục cha - con và điều chỉnh hiển thị các chuyên mục trên trang chủ.
+                </p>
+                <a href="/admin-categories.html" class="btn btn-primary btn-sm">Quản lý Danh Mục →</a>
+            </div>
+
+            <div class="admin-card">
+                <div style="font-size: 36px; margin-bottom: 12px;">📊</div>
+                <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Khám phá Sàn & Xem Shop</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px; flex: 1;">
+                    Kiểm tra giao diện khách hàng, duyệt các bộ sưu tập đang bán và theo dõi trải nghiệm mua sắm thực tế.
+                </p>
+                <a href="/products.html" class="btn btn-outline btn-sm">Xem danh mục sàn →</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!isLoggedIn() || !hasRole('ROLE_ADMIN')) {
+                showToast('Chỉ Quản trị viên (ROLE_ADMIN) mới có quyền truy cập trang này!', 'error');
+                setTimeout(() => window.location.href = '/login.html', 1500);
+            }
+        });
+    </script>
+</body>
+</html>
+

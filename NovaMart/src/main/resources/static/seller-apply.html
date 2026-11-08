@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký mở gian hàng - NovaMart</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .apply-container {
+            max-width: 620px;
+            margin: 40px auto;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <div class="apply-container">
+            <span class="badge badge-dark" style="margin-bottom: 12px;">DÀNH CHO NGHỆ NHÂN & XƯỞNG NGHỀ</span>
+            <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 12px;" data-i18n="apply_shop_title">Đăng ký mở Gian Hàng NovaMart</h1>
+            <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 30px;">
+                Đưa những tác phẩm thủ công tinh xảo của bạn tiếp cận hàng triệu khách hàng yêu nghệ thuật. Yêu cầu sẽ được Ban Quản Trị NovaMart xét duyệt trong vòng 24h.
+            </p>
+
+            <form id="applyShopForm" onsubmit="handleApplyShop(event)">
+                <div class="form-group">
+                    <label class="form-label">Tên gian hàng / Xưởng chế tác *</label>
+                    <input type="text" id="shopName" class="form-control" placeholder="Ví dụ: Gốm Mộc Bát Tràng, Xưởng Da Hồn Việt..." required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại hotline gian hàng *</label>
+                    <input type="tel" id="contactPhone" class="form-control" placeholder="0988 776 655" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Đường dẫn ảnh Logo gian hàng (URL)</label>
+                    <input type="url" id="logoUrl" class="form-control" placeholder="https://example.com/logo.jpg">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Giới thiệu về xưởng nghề & sản phẩm đặc trưng *</label>
+                    <textarea id="description" class="form-control" rows="4" placeholder="Mô tả lịch sử xưởng nghề, nghệ nhân chế tác, các dòng sản phẩm chủ lực..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;" id="submitApplyBtn">
+                    Gửi hồ sơ đăng ký mở gian hàng
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        async function checkExistingShop() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                const res = await apiRequest('/seller/shops/me', 'GET', null, true);
+                if (res && res.data) {
+                    const shop = res.data;
+                    document.querySelector('.apply-container').innerHTML = `
+                        <div style="text-align: center; padding: 30px 10px;">
+                            <div style="font-size: 54px; margin-bottom: 16px;">🏪</div>
+                            <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Gian hàng: ${shop.name}</h2>
+                            <p style="margin-bottom: 20px;">Trạng thái hiện tại: <span class="badge badge-${shop.status === 'ACTIVE' ? 'success' : 'warning'}">${shop.status}</span></p>
+                            ${shop.status === 'PENDING' ? '<p style="color: var(--text-muted);">Hồ sơ của bạn đang được Ban Quản Trị xét duyệt. Vui lòng quay lại sau ít phút.</p>' : ''}
+                            ${shop.status === 'ACTIVE' ? '<a href="/seller-dashboard.html" class="btn btn-primary btn-lg">Truy cập Kênh Người Bán</a>' : ''}
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                // No shop yet, allow applying
+            }
+        }
+
+        async function handleApplyShop(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitApplyBtn');
+            btn.innerText = 'Đang gửi hồ sơ...';
+            btn.disabled = true;
+
+            const data = {
+                name: document.getElementById('shopName').value.trim(),
+                contactPhone: document.getElementById('contactPhone').value.trim(),
+                logoUrl: document.getElementById('logoUrl').value.trim(),
+                description: document.getElementById('description').value.trim()
+            };
+
+            try {
+                const res = await apiRequest('/shops/apply', 'POST', data, true);
+                showToast('Đã gửi yêu cầu mở gian hàng thành công! Đang chờ Admin duyệt.', 'success');
+                setTimeout(() => window.location.href = '/seller-apply.html', 1500);
+            } catch (err) {
+                showToast(err.message || 'Lỗi khi gửi yêu cầu mở gian hàng', 'error');
+                btn.innerText = 'Gửi hồ sơ đăng ký mở gian hàng';
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', checkExistingShop);
+    </script>
+</body>
+</html>
+

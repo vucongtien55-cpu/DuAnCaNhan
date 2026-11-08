@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kênh Người Bán - NovaMart</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .seller-header-banner {
+            background: #191716;
+            color: white;
+            padding: 36px 0;
+            border-radius: var(--radius-lg);
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+        .stat-val {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 8px 0;
+            color: #191716;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .seller-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .seller-nav-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+        .seller-nav-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: #191716;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container">
+        <!-- Banner -->
+        <div class="seller-header-banner">
+            <div style="padding: 0 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 20px;">
+                <div>
+                    <span class="badge" style="background: rgba(255,255,255,0.2); color: white; margin-bottom: 8px;">KÊNH NGƯỜI BÁN</span>
+                    <h1 style="font-size: 28px; font-weight: 800;" id="shopTitleDisplay">Gian hàng của bạn</h1>
+                    <p style="font-size: 14px; color: var(--text-muted-dark); margin-top: 4px;" id="shopSlugDisplay">novamart.com/shops/...</p>
+                </div>
+                <div>
+                    <a href="/seller-products.html" class="btn-pill-white">+ Đăng sản phẩm mới</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Tổng doanh thu Shop</div>
+                <div class="stat-val" id="totalRevenue">0 ₫</div>
+                <div style="font-size: 12px; color: var(--success);">Đã thanh toán & hoàn tất</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Đơn hàng cần xử lý</div>
+                <div class="stat-val" id="pendingOrdersCount">0</div>
+                <div style="font-size: 12px; color: var(--warning);">Chờ chuẩn bị & giao hàng</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Sản phẩm đang bán</div>
+                <div class="stat-val" id="activeProductsCount">0</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Hiển thị trên sàn</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Tồn kho cần bổ sung</div>
+                <div class="stat-val" id="lowStockCount">0</div>
+                <div style="font-size: 12px; color: var(--danger);">Số lượng &lt; 5</div>
+            </div>
+        </div>
+
+        <!-- Navigation Hub -->
+        <div class="seller-nav-grid">
+            <div class="seller-nav-card">
+                <div style="font-size: 32px; margin-bottom: 12px;">📦</div>
+                <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Quản lý Sản phẩm</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; flex: 1;">
+                    Đăng sản phẩm mới, cập nhật giá niêm yết, thêm biến thể màu sắc, kích thước và ảnh mô tả.
+                </p>
+                <a href="/seller-products.html" class="btn btn-outline btn-sm">Quản lý sản phẩm →</a>
+            </div>
+
+            <div class="seller-nav-card">
+                <div style="font-size: 32px; margin-bottom: 12px;">📑</div>
+                <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Quản lý Đơn hàng Shop</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; flex: 1;">
+                    Tiếp nhận đơn hàng mới từ khách, xác nhận chuẩn bị hàng và cập nhật tiến độ giao vận.
+                </p>
+                <a href="/seller-orders.html" class="btn btn-outline btn-sm">Xem danh sách đơn →</a>
+            </div>
+
+            <div class="seller-nav-card">
+                <div style="font-size: 32px; margin-bottom: 12px;">🏭</div>
+                <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Quản lý Tồn kho</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; flex: 1;">
+                    Nhập thêm tồn kho, điều chỉnh số lượng sẵn sàng bán và tra cứu lịch sử xuất nhập kho.
+                </p>
+                <a href="/seller-inventory.html" class="btn btn-outline btn-sm">Xem kho hàng →</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        async function initSellerDashboard() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                // Get Shop info
+                const shopRes = await apiRequest('/seller/shops/me', 'GET', null, true);
+                if (shopRes && shopRes.data) {
+                    const shop = shopRes.data;
+                    document.getElementById('shopTitleDisplay').innerText = shop.name;
+                    document.getElementById('shopSlugDisplay').innerText = `novamart.com/shops/${shop.slug}`;
+                }
+
+                // Get products count
+                const prodRes = await apiRequest('/seller/products?size=100', 'GET', null, true);
+                if (prodRes && prodRes.data && prodRes.data.content) {
+                    document.getElementById('activeProductsCount').innerText = prodRes.data.content.length;
+                    
+                    let lowStock = 0;
+                    prodRes.data.content.forEach(p => {
+                        if (p.variants) {
+                            p.variants.forEach(v => {
+                                if (v.stockAvailable < 5) lowStock++;
+                            });
+                        }
+                    });
+                    document.getElementById('lowStockCount').innerText = lowStock;
+                }
+
+                // Get orders count
+                const ordersRes = await apiRequest('/seller/shop-orders?size=100', 'GET', null, true);
+                if (ordersRes && ordersRes.data && ordersRes.data.content) {
+                    const orders = ordersRes.data.content;
+                    const pending = orders.filter(o => o.status === 'PENDING' || o.status === 'CONFIRMED' || o.status === 'PROCESSING');
+                    document.getElementById('pendingOrdersCount').innerText = pending.length;
+
+                    const delivered = orders.filter(o => o.status === 'DELIVERED');
+                    const revenue = delivered.reduce((acc, curr) => acc + (curr.sellerAmount || 0), 0);
+                    document.getElementById('totalRevenue').innerText = formatPrice(revenue);
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Chỉ tài khoản người bán đã duyệt mới có thể vào trang này', 'error');
+                setTimeout(() => window.location.href = '/seller-apply.html', 1500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initSellerDashboard);
+    </script>
+</body>
+</html>
+

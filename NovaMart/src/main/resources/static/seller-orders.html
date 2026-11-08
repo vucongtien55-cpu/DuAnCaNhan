@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng của Shop - Kênh Người Bán</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .seller-order-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            padding: 24px;
+        }
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            text-transform: uppercase;
+        }
+        .status-PENDING { background: var(--warning-bg); color: var(--warning); }
+        .status-CONFIRMED, .status-PROCESSING { background: var(--info-bg); color: var(--info); }
+        .status-SHIPPING { background: #e0f2fe; color: #0369a1; }
+        .status-DELIVERED { background: var(--success-bg); color: var(--success); }
+        .status-CANCELLED { background: var(--danger-bg); color: var(--danger); }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <a href="/seller-dashboard.html" style="font-size: 13px; color: var(--text-muted);">← Quay lại Dashboard</a>
+                <h1 style="font-size: 26px; font-weight: 800; margin-top: 4px;">Đơn hàng cần xử lý</h1>
+            </div>
+            <div>
+                <button class="btn btn-outline btn-sm" onclick="loadShopOrders()">🔄 Làm mới</button>
+            </div>
+        </div>
+
+        <div id="shopOrdersContainer">
+            <div style="text-align: center; padding: 60px;">Đang tải danh sách đơn hàng...</div>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        async function loadShopOrders() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const container = document.getElementById('shopOrdersContainer');
+
+            try {
+                const res = await apiRequest('/seller/shop-orders?size=50', 'GET', null, true);
+                if (!res || !res.data || !res.data.content || res.data.content.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; background: var(--bg-white); padding: 80px 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📑</div>
+                            <h3 style="font-size: 18px; font-weight: 700;">Chưa có đơn hàng nào phát sinh</h3>
+                            <p style="color: var(--text-muted); font-size: 14px;">Khi khách hàng đặt sản phẩm từ Shop của bạn, đơn hàng sẽ hiển thị tại đây.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = res.data.content.map(order => `
+                    <div class="seller-order-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <span style="font-size: 13px; color: var(--text-muted);">Mã đơn con:</span>
+                                <strong style="font-size: 16px; margin-left: 4px;">#${order.shopOrderCode}</strong>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="status-badge status-${order.status}">${order.status}</span>
+                                
+                                <!-- Status Update Dropdown -->
+                                <select class="form-control" style="width: auto; padding: 4px 10px; font-size: 13px;" 
+                                        onchange="updateOrderStatus(${order.shopOrderId}, this.value)">
+                                    <option value="" disabled selected>Cập nhật trạng thái...</option>
+                                    <option value="CONFIRMED">Xác nhận đơn (CONFIRMED)</option>
+                                    <option value="PROCESSING">Đang chuẩn bị hàng (PROCESSING)</option>
+                                    <option value="SHIPPING">Bàn giao vận chuyển (SHIPPING)</option>
+                                    <option value="DELIVERED">Đã giao thành công (DELIVERED)</option>
+                                    <option value="CANCELLED">Hủy đơn hàng (CANCELLED)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Items -->
+                        <div style="background: #faf9f6; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
+                            ${order.items ? order.items.map(it => `
+                                <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+                                    <div>
+                                        <strong>${it.productName}</strong> 
+                                        <span style="color: var(--text-muted);">(${it.variantName} - ${it.sku})</span>
+                                        <span style="margin-left: 6px;">x ${it.quantity}</span>
+                                    </div>
+                                    <div style="font-weight: 700;">${formatPrice(it.lineTotal)}</div>
+                                </div>
+                            `).join('') : ''}
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
+                            <span style="font-size: 14px; color: var(--text-muted);">Doanh thu thực nhận:</span>
+                            <strong style="font-size: 18px; color: #191716;">${formatPrice(order.sellerAmount)}</strong>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 40px;">${e.message}</div>`;
+            }
+        }
+
+        async function updateOrderStatus(orderId, status) {
+            if (!confirm(`Bạn có chắc muốn chuyển trạng thái đơn hàng sang ${status}?`)) {
+                loadShopOrders();
+                return;
+            }
+
+            try {
+                await apiRequest(`/seller/shop-orders/${orderId}/status?status=${status}`, 'PATCH', null, true);
+                showToast('Cập nhật trạng thái thành công!', 'success');
+                loadShopOrders();
+            } catch (e) {
+                showToast(e.message || 'Lỗi khi cập nhật trạng thái', 'error');
+                loadShopOrders();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadShopOrders);
+    </script>
+</body>
+</html>
+

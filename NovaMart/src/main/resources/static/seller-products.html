@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm - Kênh Người Bán</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .product-table-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-top: 24px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .data-table th {
+            background: #faf8f5;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+        .variant-input-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr 1fr 40px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <a href="/seller-dashboard.html" style="font-size: 13px; color: var(--text-muted);">← Quay lại Dashboard</a>
+                <h1 style="font-size: 26px; font-weight: 800; margin-top: 4px;">Sản phẩm của gian hàng</h1>
+            </div>
+            <button class="btn btn-primary" onclick="openAddProductModal()">+ Đăng sản phẩm mới</button>
+        </div>
+
+        <div class="product-table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Khoảng giá</th>
+                        <th>Biến thể & Tồn kho</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="sellerProductTbody">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px;">Đang tải danh sách...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Add Product -->
+    <div id="addProductModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; overflow-y: auto; padding: 40px 10px;">
+        <div style="background: white; padding: 36px; border-radius: var(--radius-lg); width: 100%; max-width: 680px; box-shadow: var(--shadow-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 20px; font-weight: 800;">Đăng tác phẩm / Sản phẩm mới</h3>
+                <button onclick="closeAddProductModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+            </div>
+
+            <form id="createProductForm" onsubmit="handleCreateProduct(event)">
+                <div class="form-group">
+                    <label class="form-label">Tên sản phẩm *</label>
+                    <input type="text" id="pName" class="form-control" placeholder="Ví dụ: Ấm trà Tử Sa Bát Tràng đắp nổi thủ công" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Danh mục sản phẩm *</label>
+                    <select id="pCategory" class="form-control" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mô tả sản phẩm *</label>
+                    <textarea id="pDescription" class="form-control" rows="3" placeholder="Chất liệu, nguồn gốc nguyên liệu, nghệ nhân thực hiện..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Đường dẫn ảnh sản phẩm (mỗi link 1 dòng)</label>
+                    <textarea id="pImageUrls" class="form-control" rows="2" placeholder="https://example.com/anh1.jpg&#10;https://example.com/anh2.jpg"></textarea>
+                </div>
+
+                <!-- Dynamic Variants Builder -->
+                <div style="margin-top: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <label class="form-label" style="margin-bottom: 0;">Danh sách biến thể & Tồn kho ban đầu *</label>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="addVariantRow()">+ Thêm biến thể</button>
+                    </div>
+
+                    <div id="variantsBuilderContainer">
+                        <!-- Variant rows -->
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px;">
+                    <button type="button" class="btn btn-outline" onclick="closeAddProductModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="saveProductBtn">Đăng bán sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        let variantRowCount = 0;
+
+        async function initProducts() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+            loadCategories();
+            loadSellerProducts();
+        }
+
+        async function loadCategories() {
+            try {
+                const res = await apiRequest('/categories');
+                if (res && res.data) {
+                    const select = document.getElementById('pCategory');
+                    select.innerHTML = res.data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadSellerProducts() {
+            const tbody = document.getElementById('sellerProductTbody');
+            try {
+                const res = await apiRequest('/seller/products?size=50', 'GET', null, true);
+                if (res && res.data && res.data.content && res.data.content.length > 0) {
+                    tbody.innerHTML = res.data.content.map(p => `
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <img src="${(p.imageUrls && p.imageUrls.length > 0) ? p.imageUrls[0] : 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=100&q=80'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--radius-sm);">
+                                    <div>
+                                        <strong>${p.name}</strong>
+                                        <div style="font-size: 12px; color: var(--text-muted);">Slug: ${p.slug}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${p.categoryName}</td>
+                            <td><strong>${formatPrice(p.minPrice)}</strong></td>
+                            <td>
+                                ${p.variants ? p.variants.map(v => `
+                                    <div style="font-size: 12px;">
+                                        • ${v.variantName} (${v.sku}): <strong>${v.stockAvailable}</strong> tồn
+                                    </div>
+                                `).join('') : '-'}
+                            </td>
+                            <td><span class="badge badge-${p.status === 'ACTIVE' ? 'success' : 'dark'}">${p.status}</span></td>
+                            <td>
+                                <button class="btn btn-outline btn-sm" onclick="toggleProductStatus(${p.id}, '${p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'}')">
+                                    ${p.status === 'ACTIVE' ? 'Tạm ẩn' : 'Bán lại'}
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Chưa có sản phẩm nào. Hãy đăng sản phẩm đầu tiên!</td></tr>';
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">${e.message}</td></tr>`;
+            }
+        }
+
+        function openAddProductModal() {
+            document.getElementById('createProductForm').reset();
+            document.getElementById('variantsBuilderContainer').innerHTML = '';
+            variantRowCount = 0;
+            addVariantRow('Mặc định', 'SKU-' + Date.now().toString().slice(-6), 250000, 20);
+            document.getElementById('addProductModal').style.display = 'flex';
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'none';
+        }
+
+        function addVariantRow(name = '', sku = '', price = '', stock = '') {
+            const container = document.getElementById('variantsBuilderContainer');
+            const rowId = `vRow_${variantRowCount++}`;
+            const div = document.createElement('div');
+            div.className = 'variant-input-row';
+            div.id = rowId;
+            div.innerHTML = `
+                <input type="text" class="form-control v-name" placeholder="Tên biến thể" value="${name}" required>
+                <input type="text" class="form-control v-sku" placeholder="Mã SKU" value="${sku}" required>
+                <input type="number" class="form-control v-price" placeholder="Giá bán ₫" value="${price}" required min="1000">
+                <input type="number" class="form-control v-stock" placeholder="Tồn kho" value="${stock}" required min="0">
+                <button type="button" onclick="document.getElementById('${rowId}').remove()" style="background: none; border: none; cursor: pointer; color: var(--danger);">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        async function handleCreateProduct(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveProductBtn');
+            btn.innerText = 'Đang lưu...';
+            btn.disabled = true;
+
+            const rows = document.querySelectorAll('.variant-input-row');
+            if (rows.length === 0) {
+                showToast('Phải có ít nhất 1 biến thể sản phẩm!', 'error');
+                btn.innerText = 'Đăng bán sản phẩm';
+                btn.disabled = false;
+                return;
+            }
+
+            const variants = [];
+            rows.forEach(r => {
+                variants.push({
+                    variantName: r.querySelector('.v-name').value.trim(),
+                    sku: r.querySelector('.v-sku').value.trim(),
+                    price: parseFloat(r.querySelector('.v-price').value),
+                    initialStock: parseInt(r.querySelector('.v-stock').value) || 0
+                });
+            });
+
+            const imgText = document.getElementById('pImageUrls').value.trim();
+            const imageUrls = imgText ? imgText.split('\n').map(u => u.trim()).filter(Boolean) : [];
+
+            const data = {
+                name: document.getElementById('pName').value.trim(),
+                categoryId: parseInt(document.getElementById('pCategory').value),
+                description: document.getElementById('pDescription').value.trim(),
+                imageUrls: imageUrls,
+                variants: variants
+            };
+
+            try {
+                await apiRequest('/seller/products', 'POST', data, true);
+                showToast('Đăng sản phẩm thành công!', 'success');
+                closeAddProductModal();
+                loadSellerProducts();
+            } catch (err) {
+                showToast(err.message || 'Lỗi khi tạo sản phẩm', 'error');
+            } finally {
+                btn.innerText = 'Đăng bán sản phẩm';
+                btn.disabled = false;
+            }
+        }
+
+        async function toggleProductStatus(id, newStatus) {
+            try {
+                await apiRequest(`/seller/products/${id}/status?status=${newStatus}`, 'PATCH', null, true);
+                showToast('Cập nhật trạng thái thành công!', 'success');
+                loadSellerProducts();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initProducts);
+    </script>
+</body>
+</html>
+

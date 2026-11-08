@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử đơn hàng - NovaMart</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .order-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .order-card-header {
+            padding: 18px 24px;
+            background: #faf8f5;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .order-card-body {
+            padding: 24px;
+        }
+        .sub-order-box {
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 14px;
+            background: #fff;
+        }
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            text-transform: uppercase;
+        }
+        .status-PENDING { background: var(--warning-bg); color: var(--warning); }
+        .status-PROCESSING { background: var(--info-bg); color: var(--info); }
+        .status-DELIVERED, .status-COMPLETED { background: var(--success-bg); color: var(--success); }
+        .status-CANCELLED { background: var(--danger-bg); color: var(--danger); }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <h1 style="font-size: 26px; font-weight: 800; margin-bottom: 24px;" data-i18n="orders_title">Lịch sử đơn hàng</h1>
+        
+        <div id="ordersContainer">
+            <div style="text-align: center; padding: 60px;">Đang tải danh sách đơn hàng...</div>
+        </div>
+    </div>
+
+    <!-- Modal Cancel Order -->
+    <div id="cancelModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 100%; max-width: 440px; box-shadow: var(--shadow-lg);">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 12px;">Hủy đơn hàng</h3>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">Vui lòng nhập lý do hủy đơn hàng:</p>
+            <textarea id="cancelReasonInput" class="form-control" rows="3" placeholder="Lý do hủy (đổi ý, đặt nhầm...)"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-outline btn-sm" onclick="closeCancelModal()">Đóng</button>
+                <button class="btn btn-danger btn-sm" onclick="confirmCancel()">Xác nhận hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        let currentCancelOrderId = null;
+
+        async function loadMyOrders() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const container = document.getElementById('ordersContainer');
+
+            try {
+                const res = await apiRequest('/orders?size=20', 'GET', null, true);
+                if (!res || !res.data || !res.data.content || res.data.content.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; background: var(--bg-white); padding: 80px 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+                            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">Bạn chưa có đơn hàng nào</h3>
+                            <a href="/products.html" class="btn btn-primary" style="margin-top: 14px;">Khám phá sản phẩm ngay</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = res.data.content.map(order => `
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div>
+                                <span style="font-size: 13px; color: var(--text-muted);">Mã đơn:</span>
+                                <strong style="font-size: 15px; margin-left: 4px;">#${order.orderCode}</strong>
+                                <span style="margin: 0 8px; color: var(--border-color);">|</span>
+                                <span style="font-size: 13px; color: var(--text-muted);">${formatDate(order.createdAt)}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="status-badge status-${order.status}">${order.status}</span>
+                                ${order.status === 'PENDING' || order.status === 'PROCESSING' ? `
+                                    <button class="btn btn-outline btn-sm" onclick="openCancelModal(${order.orderId})" style="color: var(--danger); border-color: var(--danger);">
+                                        Hủy đơn
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <div class="order-card-body">
+                            <div style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">
+                                📍 <strong>Giao tới:</strong> ${order.recipientName} (${order.recipientPhone}) - ${order.shippingAddress}
+                            </div>
+
+                            <!-- Shop Orders List -->
+                            ${order.shopOrders ? order.shopOrders.map(so => `
+                                <div class="sub-order-box">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+                                        <strong>🏪 Gian hàng: ${so.shopName}</strong>
+                                        <span class="status-badge status-${so.status}">${so.status}</span>
+                                    </div>
+                                    ${so.items ? so.items.map(it => `
+                                        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+                                            <div>${it.productName} (${it.variantName}) x ${it.quantity}</div>
+                                            <div style="font-weight: 700;">${formatPrice(it.lineTotal)}</div>
+                                        </div>
+                                    `).join('') : ''}
+                                </div>
+                            `).join('') : ''}
+
+                            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 20px; font-size: 16px;">
+                                <span>Tổng thanh toán:</span>
+                                <strong style="font-size: 20px; color: #191716;">${formatPrice(order.grandTotal)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 40px;">${e.message}</div>`;
+            }
+        }
+
+        function openCancelModal(orderId) {
+            currentCancelOrderId = orderId;
+            document.getElementById('cancelReasonInput').value = '';
+            const modal = document.getElementById('cancelModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeCancelModal() {
+            currentCancelOrderId = null;
+            document.getElementById('cancelModal').style.display = 'none';
+        }
+
+        async function confirmCancel() {
+            if (!currentCancelOrderId) return;
+            const reason = document.getElementById('cancelReasonInput').value.trim() || 'Khách hàng yêu cầu hủy đơn';
+
+            try {
+                await apiRequest(`/orders/${currentCancelOrderId}/cancel?reason=${encodeURIComponent(reason)}`, 'POST', null, true);
+                showToast('Hủy đơn hàng thành công!', 'success');
+                closeCancelModal();
+                loadMyOrders();
+            } catch (e) {
+                showToast(e.message || 'Lỗi khi hủy đơn hàng', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMyOrders);
+    </script>
+</body>
+</html>
+

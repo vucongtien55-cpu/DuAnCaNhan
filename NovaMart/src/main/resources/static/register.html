@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký tài khoản - NovaMart</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .auth-container {
+            max-width: 460px;
+            margin: 50px auto;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container">
+        <div class="auth-container">
+            <div style="text-align: center; margin-bottom: 28px;">
+                <div class="logo-brand" style="justify-content: center; margin-bottom: 8px;">
+                    <span>NovaMart</span>
+                    <span class="logo-dot">▪</span>
+                </div>
+                <h2 style="font-size: 22px; font-weight: 800;">Tạo tài khoản mới</h2>
+                <p style="font-size: 13px; color: var(--text-muted);">Trở thành thành viên để lưu giỏ hàng & theo dõi đơn hàng</p>
+            </div>
+
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Họ và tên *</label>
+                    <input type="text" id="regFullName" class="form-control" placeholder="Nguyễn Văn A" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email đăng nhập *</label>
+                    <input type="email" id="regEmail" class="form-control" placeholder="name@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại liên hệ</label>
+                    <input type="tel" id="regPhone" class="form-control" placeholder="0912 345 678">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu (tối thiểu 6 ký tự) *</label>
+                    <input type="password" id="regPassword" class="form-control" minlength="6" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;" id="regSubmitBtn">
+                    Tạo tài khoản
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 24px; font-size: 13px; color: var(--text-muted);">
+                Đã có tài khoản? <a href="/login.html" style="font-weight: 700; color: var(--text-dark); text-decoration: underline;">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        async function handleRegister(e) {
+            e.preventDefault();
+            const btn = document.getElementById('regSubmitBtn');
+            btn.innerText = 'Đang xử lý...';
+            btn.disabled = true;
+
+            const data = {
+                fullName: document.getElementById('regFullName').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                phone: document.getElementById('regPhone').value.trim(),
+                password: document.getElementById('regPassword').value
+            };
+
+            try {
+                await apiRequest('/auth/register', 'POST', data);
+                showToast('Đăng ký tài khoản thành công! Đang chuyển hướng...', 'success');
+                setTimeout(() => window.location.href = '/login.html', 1000);
+            } catch (err) {
+                showToast(err.message || 'Lỗi khi đăng ký tài khoản', 'error');
+                btn.innerText = 'Tạo tài khoản';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
+

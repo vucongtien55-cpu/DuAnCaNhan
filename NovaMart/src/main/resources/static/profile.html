@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ & Sổ địa chỉ - NovaMart</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        .profile-sidebar-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            text-align: center;
+        }
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #191716;
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .address-box {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            background: var(--bg-white);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <h1 style="font-size: 26px; font-weight: 800; margin-bottom: 24px;">Tài khoản của bạn</h1>
+
+        <div class="profile-grid">
+            <!-- Sidebar Profile -->
+            <div>
+                <div class="profile-sidebar-card">
+                    <div class="profile-avatar-large" id="avatarDisplay">U</div>
+                    <h3 style="font-size: 18px; font-weight: 800;" id="nameDisplay">Họ và tên</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;" id="emailDisplay">email@example.com</p>
+                    <div id="rolesBadges" style="margin-bottom: 20px;"></div>
+                    <button class="btn btn-outline btn-sm" style="width: 100%; color: var(--danger);" onclick="logout()">Đăng xuất</button>
+                </div>
+            </div>
+
+            <!-- Address Manager -->
+            <div>
+                <div style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 style="font-size: 18px; font-weight: 800;">Sổ địa chỉ nhận hàng</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openAddressModal()">+ Thêm địa chỉ mới</button>
+                    </div>
+
+                    <div id="addressList">
+                        <div>Đang tải địa chỉ...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Address -->
+    <div id="addressModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 100%; max-width: 500px; box-shadow: var(--shadow-lg);">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 20px;" id="modalTitle">Thêm địa chỉ mới</h3>
+            <form id="addressForm" onsubmit="handleSaveAddress(event)">
+                <div class="form-group">
+                    <label class="form-label">Tên người nhận *</label>
+                    <input type="text" id="recipientName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại *</label>
+                    <input type="text" id="recipientPhone" class="form-control" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label class="form-label">Tỉnh / Thành phố *</label>
+                        <input type="text" id="province" class="form-control" placeholder="Hà Nội" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quận / Huyện *</label>
+                        <input type="text" id="district" class="form-control" placeholder="Ba Đình" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phường / Xã *</label>
+                    <input type="text" id="ward" class="form-control" placeholder="Cống Vị" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ chi tiết (số nhà, đường) *</label>
+                    <input type="text" id="detail" class="form-control" placeholder="Số 10, Liễu Giai" required>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                        <input type="checkbox" id="isDefault"> Đặt làm địa chỉ mặc định
+                    </label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeAddressModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Lưu địa chỉ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        let editingAddressId = null;
+
+        async function initProfile() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                const userRes = await apiRequest('/users/me', 'GET', null, true);
+                if (userRes && userRes.data) {
+                    const u = userRes.data;
+                    document.getElementById('avatarDisplay').innerText = (u.fullName || u.email).charAt(0).toUpperCase();
+                    document.getElementById('nameDisplay').innerText = u.fullName || 'Chưa đặt tên';
+                    document.getElementById('emailDisplay').innerText = u.email;
+                    document.getElementById('rolesBadges').innerHTML = u.roles.map(r => `
+                        <span class="badge badge-dark" style="margin-right: 4px;">${r.replace('ROLE_', '')}</span>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+
+            loadAddresses();
+        }
+
+        async function loadAddresses() {
+            const list = document.getElementById('addressList');
+            try {
+                const res = await apiRequest('/addresses', 'GET', null, true);
+                if (res && res.data && res.data.length > 0) {
+                    list.innerHTML = res.data.map(a => `
+                        <div class="address-box">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                    <strong style="font-size: 15px;">${a.recipientName}</strong>
+                                    <span style="font-size: 13px; color: var(--text-muted);">| ${a.recipientPhone}</span>
+                                    ${a.default ? '<span class="badge badge-dark">Mặc định</span>' : ''}
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-muted);">
+                                    ${a.detail}, ${a.ward}, ${a.district}, ${a.province}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                ${!a.default ? `
+                                    <button class="btn btn-outline btn-sm" onclick="setDefaultAddress(${a.id})">Đặt mặc định</button>
+                                ` : ''}
+                                <button class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="deleteAddress(${a.id})">Xóa</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<div style="color: var(--text-muted); padding: 20px 0;">Chưa có địa chỉ nhận hàng nào.</div>';
+                }
+            } catch (e) {
+                list.innerHTML = '<div style="color: var(--danger);">Lỗi nạp địa chỉ</div>';
+            }
+        }
+
+        function openAddressModal() {
+            editingAddressId = null;
+            document.getElementById('modalTitle').innerText = 'Thêm địa chỉ mới';
+            document.getElementById('addressForm').reset();
+            document.getElementById('addressModal').style.display = 'flex';
+        }
+
+        function closeAddressModal() {
+            document.getElementById('addressModal').style.display = 'none';
+        }
+
+        async function handleSaveAddress(e) {
+            e.preventDefault();
+            const data = {
+                recipientName: document.getElementById('recipientName').value.trim(),
+                recipientPhone: document.getElementById('recipientPhone').value.trim(),
+                province: document.getElementById('province').value.trim(),
+                district: document.getElementById('district').value.trim(),
+                ward: document.getElementById('ward').value.trim(),
+                detail: document.getElementById('detail').value.trim(),
+                default: document.getElementById('isDefault').checked
+            };
+
+            try {
+                await apiRequest('/addresses', 'POST', data, true);
+                showToast('Thêm địa chỉ thành công!', 'success');
+                closeAddressModal();
+                loadAddresses();
+            } catch (err) {
+                showToast(err.message || 'Lỗi khi lưu địa chỉ', 'error');
+            }
+        }
+
+        async function setDefaultAddress(id) {
+            try {
+                await apiRequest(`/addresses/${id}/default`, 'PATCH', null, true);
+                showToast('Đã đặt làm địa chỉ mặc định!', 'success');
+                loadAddresses();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function deleteAddress(id) {
+            if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+            try {
+                await apiRequest(`/addresses/${id}`, 'DELETE', null, true);
+                showToast('Xóa địa chỉ thành công!', 'success');
+                loadAddresses();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initProfile);
+    </script>
+</body>
+</html>
+

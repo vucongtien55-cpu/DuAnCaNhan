@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán đơn hàng - NovaMart</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        .checkout-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 24px;
+        }
+        .address-radio-box {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .address-radio-box.active, .address-radio-box:hover {
+            border-color: #191716;
+            background: #faf9f7;
+        }
+        .payment-method-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .payment-method-box.active {
+            border-color: #191716;
+            background: #faf9f7;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <h1 style="font-size: 26px; font-weight: 800; margin-bottom: 24px;">Xác nhận đặt hàng & Thanh toán</h1>
+
+        <div class="checkout-layout">
+            <!-- Left: Address & Payment Selection -->
+            <div>
+                <!-- 1. Address -->
+                <div class="checkout-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                        <h3 style="font-size: 18px; font-weight: 800;" data-i18n="shipping_address">Địa chỉ nhận hàng</h3>
+                        <a href="/profile.html" class="btn btn-outline btn-sm">+ Thêm địa chỉ mới</a>
+                    </div>
+                    <div id="addressListContainer">
+                        <div style="color: var(--text-muted);">Đang nạp sổ địa chỉ...</div>
+                    </div>
+                </div>
+
+                <!-- 2. Payment Method -->
+                <div class="checkout-card">
+                    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 18px;" data-i18n="payment_method">Phương thức thanh toán</h3>
+                    
+                    <div class="payment-method-box active" onclick="selectPaymentMethod('COD', this)">
+                        <input type="radio" name="payMethod" value="COD" checked>
+                        <div>
+                            <div style="font-weight: 700;">Thanh toán khi nhận hàng (COD)</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">Kiểm tra hàng trước khi thanh toán tiền mặt</div>
+                        </div>
+                    </div>
+
+                    <div class="payment-method-box" onclick="selectPaymentMethod('MOCK_ONLINE', this)">
+                        <input type="radio" name="payMethod" value="MOCK_ONLINE">
+                        <div>
+                            <div style="font-weight: 700;">Chuyển khoản / Trực tuyến mô phỏng</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">Xác nhận thanh toán điện tử trực tiếp</div>
+                        </div>
+                    </div>
+
+                    <!-- Note -->
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label class="form-label" data-i18n="order_notes">Ghi chú đơn hàng cho người bán:</label>
+                        <textarea id="orderNote" class="form-control" rows="3" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Order Review -->
+            <div>
+                <div class="checkout-card" style="position: sticky; top: 90px;">
+                    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 20px;">Đơn hàng của bạn</h3>
+                    <div id="checkoutItemsReview"></div>
+                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 18px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                        <span style="color: var(--text-muted);">Tạm tính</span>
+                        <span style="font-weight: 700;" id="checkoutSubtotal">0 ₫</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                        <span style="color: var(--text-muted);">Phí vận chuyển</span>
+                        <span style="font-weight: 600; color: var(--success);">Miễn phí</span>
+                    </div>
+                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 18px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 18px;">
+                        <span style="font-weight: 800;">Tổng thanh toán</span>
+                        <span style="font-weight: 800; color: #191716;" id="checkoutGrandTotal">0 ₫</span>
+                    </div>
+                    <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="submitCheckout()" data-i18n="place_order_btn">
+                        Xác nhận đặt hàng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        let selectedAddressId = null;
+        let selectedPayment = 'COD';
+
+        async function initCheckout() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // 1. Load addresses
+            try {
+                const addrRes = await apiRequest('/addresses', 'GET', null, true);
+                const container = document.getElementById('addressListContainer');
+                if (addrRes && addrRes.data && addrRes.data.length > 0) {
+                    container.innerHTML = addrRes.data.map((addr, idx) => `
+                        <div class="address-radio-box ${addr.default || idx === 0 ? 'active' : ''}" 
+                             onclick="selectAddress(${addr.id}, this)">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong style="font-size: 15px;">${addr.recipientName} (${addr.recipientPhone})</strong>
+                                ${addr.default ? '<span class="badge badge-dark">Mặc định</span>' : ''}
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                                ${addr.detail}, ${addr.ward}, ${addr.district}, ${addr.province}
+                            </div>
+                        </div>
+                    `).join('');
+
+                    const defaultAddr = addrRes.data.find(a => a.default) || addrRes.data[0];
+                    selectedAddressId = defaultAddr.id;
+                } else {
+                    container.innerHTML = `
+                        <div style="padding: 20px; background: #fff4e5; border-radius: var(--radius-md); color: var(--warning);">
+                            Bạn chưa có địa chỉ nhận hàng nào. 
+                            <a href="/profile.html" style="font-weight: 700; text-decoration: underline;">Bấm vào đây để thêm địa chỉ</a> trước khi đặt hàng.
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+
+            // 2. Load Cart Review
+            try {
+                const cartRes = await apiRequest('/cart', 'GET', null, true);
+                if (cartRes && cartRes.data && cartRes.data.shopGroups) {
+                    const review = document.getElementById('checkoutItemsReview');
+                    document.getElementById('checkoutSubtotal').innerText = formatPrice(cartRes.data.grandTotal);
+                    document.getElementById('checkoutGrandTotal').innerText = formatPrice(cartRes.data.grandTotal);
+
+                    let itemsHtml = '';
+                    cartRes.data.shopGroups.forEach(group => {
+                        group.items.forEach(item => {
+                            itemsHtml += `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px;">
+                                    <div>
+                                        <div style="font-weight: 700;">${item.productName}</div>
+                                        <div style="color: var(--text-muted);">${item.variantName} x ${item.quantity}</div>
+                                    </div>
+                                    <div style="font-weight: 700;">${formatPrice(item.lineTotal)}</div>
+                                </div>
+                            `;
+                        });
+                    });
+                    review.innerHTML = itemsHtml;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function selectAddress(id, el) {
+            selectedAddressId = id;
+            document.querySelectorAll('.address-radio-box').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function selectPaymentMethod(method, el) {
+            selectedPayment = method;
+            document.querySelectorAll('.payment-method-box').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            el.querySelector('input').checked = true;
+        }
+
+        async function submitCheckout() {
+            if (!selectedAddressId) {
+                showToast('Vui lòng chọn địa chỉ giao hàng!', 'error');
+                return;
+            }
+
+            const note = document.getElementById('orderNote').value.trim();
+
+            try {
+                const res = await apiRequest('/orders/checkout', 'POST', {
+                    addressId: selectedAddressId,
+                    paymentMethod: selectedPayment,
+                    note: note
+                }, true);
+
+                if (res && res.data) {
+                    const order = res.data;
+                    showToast('Đặt hàng thành công!', 'success');
+
+                    // If mock payment, confirm it or redirect
+                    if (selectedPayment === 'MOCK_ONLINE') {
+                        await apiRequest(`/payments/mock/confirm/${order.orderId}`, 'POST', null, true).catch(() => {});
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = `/orders.html?successOrder=${order.orderCode}`;
+                    }, 800);
+                }
+            } catch (e) {
+                showToast(e.message || 'Lỗi khi đặt hàng!', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initCheckout);
+    </script>
+</body>
+</html>
+

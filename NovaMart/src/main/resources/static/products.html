@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm - NovaMart</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .catalog-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 36px;
+            margin-top: 40px;
+        }
+        .filter-sidebar {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+        .filter-group {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .filter-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .filter-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--text-dark);
+        }
+        .filter-list {
+            list-style: none;
+        }
+        .filter-item {
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .filter-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        .filter-item label:hover {
+            color: var(--text-dark);
+        }
+        .catalog-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            background: var(--bg-white);
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+        @media (max-width: 850px) {
+            .catalog-layout { grid-template-columns: 1fr; }
+            .filter-sidebar { position: static; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <div class="catalog-top-bar">
+            <div>
+                <span style="font-size: 13px; color: var(--text-muted);" id="resultCount">Đang tải sản phẩm...</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <label style="font-size: 13px; font-weight: 600;">Sắp xếp:</label>
+                <select class="form-control" id="sortSelect" onchange="loadProducts()" style="padding: 6px 14px; width: auto;">
+                    <option value="newest">Mới nhất</option>
+                    <option value="price-asc">Giá tăng dần</option>
+                    <option value="price-desc">Giá giảm dần</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="catalog-layout">
+            <!-- Filter Sidebar -->
+            <aside class="filter-sidebar">
+                <div class="filter-group">
+                    <h4 class="filter-title">Danh mục sản phẩm</h4>
+                    <ul class="filter-list" id="categoryFilterList">
+                        <li class="filter-item">
+                            <label>
+                                <input type="radio" name="catFilter" value="" checked onchange="filterCategory('')">
+                                Tất cả danh mục
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="filter-group">
+                    <h4 class="filter-title">Khoảng giá</h4>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <input type="number" id="minPriceInput" placeholder="Từ ₫" class="form-control" style="padding: 6px;">
+                        <input type="number" id="maxPriceInput" placeholder="Đến ₫" class="form-control" style="padding: 6px;">
+                    </div>
+                    <button class="btn btn-primary btn-sm" style="width: 100%;" onclick="loadProducts()">Áp dụng</button>
+                </div>
+
+                <button class="btn btn-outline btn-sm" style="width: 100%; margin-top: 10px;" onclick="resetFilters()">Đặt lại bộ lọc</button>
+            </aside>
+
+            <!-- Product Grid -->
+            <main>
+                <div class="products-grid" id="productsCatalogContainer"></div>
+                <div id="paginationContainer" style="margin-top: 40px; display: flex; justify-content: center; gap: 8px;"></div>
+            </main>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        let selectedCategory = '';
+        const urlParams = new URLSearchParams(window.location.search);
+        let searchQuery = urlParams.get('search') || '';
+
+        async function loadCategories() {
+            try {
+                const res = await apiRequest('/categories');
+                const list = document.getElementById('categoryFilterList');
+                if (res && res.data) {
+                    res.data.forEach(c => {
+                        const li = document.createElement('li');
+                        li.className = 'filter-item';
+                        li.innerHTML = `
+                            <label>
+                                <input type="radio" name="catFilter" value="${c.id}" onchange="filterCategory('${c.id}')">
+                                ${c.name}
+                            </label>
+                        `;
+                        list.appendChild(li);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function filterCategory(catId) {
+            selectedCategory = catId;
+            loadProducts();
+        }
+
+        function resetFilters() {
+            selectedCategory = '';
+            document.getElementById('minPriceInput').value = '';
+            document.getElementById('maxPriceInput').value = '';
+            document.querySelectorAll('input[name="catFilter"]')[0].checked = true;
+            searchQuery = '';
+            loadProducts();
+        }
+
+        async function loadProducts(page = 0) {
+            const container = document.getElementById('productsCatalogContainer');
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Đang tải...</div>';
+
+            try {
+                const res = await apiRequest(`/products?page=${page}&size=12`);
+                if (res && res.data && res.data.content) {
+                    let products = res.data.content;
+
+                    // Filter client side for category and search if needed
+                    if (selectedCategory) {
+                        products = products.filter(p => p.categoryId == selectedCategory);
+                    }
+                    if (searchQuery) {
+                        const q = searchQuery.toLowerCase();
+                        products = products.filter(p => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)));
+                    }
+
+                    const minP = parseFloat(document.getElementById('minPriceInput').value);
+                    const maxP = parseFloat(document.getElementById('maxPriceInput').value);
+                    if (!isNaN(minP)) products = products.filter(p => p.minPrice >= minP);
+                    if (!isNaN(maxP)) products = products.filter(p => p.minPrice <= maxP);
+
+                    document.getElementById('resultCount').innerText = `Hiển thị ${products.length} sản phẩm`;
+
+                    if (products.length === 0) {
+                        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted);">Không tìm thấy sản phẩm phù hợp.</div>';
+                        return;
+                    }
+
+                    container.innerHTML = products.map(p => {
+                        const img = (p.imageUrls && p.imageUrls.length > 0) ? p.imageUrls[0] : 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80';
+                        return `
+                            <div class="product-card">
+                                <div class="product-card-img-wrap" onclick="location.href='/product-detail.html?id=${p.id}'" style="cursor: pointer;">
+                                    <img src="${img}" alt="${p.name}" class="product-card-img">
+                                    <span class="product-card-badge">${p.categoryName || 'Thủ công'}</span>
+                                </div>
+                                <div class="product-card-body">
+                                    <div class="product-card-shop">${p.shopName}</div>
+                                    <h4 class="product-card-title">
+                                        <a href="/product-detail.html?id=${p.id}">${p.name}</a>
+                                    </h4>
+                                    <div class="product-card-price-row">
+                                        <div class="product-card-price">${formatPrice(p.minPrice)}</div>
+                                        <a href="/product-detail.html?id=${p.id}" class="btn-card-buy">Chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (e) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--danger);">Lỗi khi tải sản phẩm.</div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
+

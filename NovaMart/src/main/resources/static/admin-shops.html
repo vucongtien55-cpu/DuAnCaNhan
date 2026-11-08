@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm duyệt & Quản lý Gian Hàng - Admin Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .shops-table-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-top: 24px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .data-table th {
+            background: #faf8f5;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+        }
+        .tab-btn.active {
+            color: #191716;
+            border-bottom-color: #191716;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <a href="/admin-dashboard.html" style="font-size: 13px; color: var(--text-muted);">← Quay lại Admin Dashboard</a>
+                <h1 style="font-size: 26px; font-weight: 800; margin-top: 4px;">Kiểm duyệt & Quản lý Gian Hàng</h1>
+            </div>
+            <div>
+                <button class="btn btn-outline btn-sm" onclick="loadShops()">🔄 Làm mới</button>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;">
+            <button class="tab-btn active" onclick="switchTab('PENDING', this)">Chờ phê duyệt (PENDING)</button>
+            <button class="tab-btn" onclick="switchTab('ACTIVE', this)">Đang hoạt động (ACTIVE)</button>
+            <button class="tab-btn" onclick="switchTab('SUSPENDED', this)">Đã tạm khóa (SUSPENDED)</button>
+            <button class="tab-btn" onclick="switchTab('REJECTED', this)">Bị từ chối (REJECTED)</button>
+        </div>
+
+        <div class="shops-table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Tên gian hàng / Xưởng</th>
+                        <th>Đường dẫn (Slug)</th>
+                        <th>Hotline</th>
+                        <th>Mô tả xưởng</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="shopsTbody">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px;">Đang tải danh sách gian hàng...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        let currentStatusTab = 'PENDING';
+
+        function switchTab(status, el) {
+            currentStatusTab = status;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            loadShops();
+        }
+
+        async function loadShops() {
+            if (!isLoggedIn() || !hasRole('ROLE_ADMIN')) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const tbody = document.getElementById('shopsTbody');
+
+            try {
+                const res = await apiRequest(`/admin/shops?status=${currentStatusTab}`, 'GET', null, true);
+                if (res && res.data && res.data.length > 0) {
+                    tbody.innerHTML = res.data.map(s => `
+                        <tr>
+                            <td>
+                                <strong>${s.name}</strong>
+                                ${s.adminNote ? `<div style="font-size: 12px; color: var(--danger); margin-top: 4px;">Ghi chú: ${s.adminNote}</div>` : ''}
+                            </td>
+                            <td><code>/${s.slug}</code></td>
+                            <td>${s.contactPhone}</td>
+                            <td style="max-width: 320px; font-size: 13px; color: var(--text-muted);">${s.description || '-'}</td>
+                            <td><span class="badge badge-${s.status === 'ACTIVE' ? 'success' : (s.status === 'PENDING' ? 'warning' : 'danger')}">${s.status}</span></td>
+                            <td>
+                                <div style="display: flex; gap: 6px;">
+                                    ${s.status === 'PENDING' ? `
+                                        <button class="btn btn-primary btn-sm" onclick="approveShop(${s.id})">Phê duyệt</button>
+                                        <button class="btn btn-outline btn-sm" style="color: var(--danger);" onclick="rejectShop(${s.id})">Từ chối</button>
+                                    ` : ''}
+                                    ${s.status === 'ACTIVE' ? `
+                                        <button class="btn btn-outline btn-sm" style="color: var(--danger);" onclick="suspendShop(${s.id})">Khóa Shop</button>
+                                    ` : ''}
+                                    ${s.status === 'SUSPENDED' ? `
+                                        <button class="btn btn-primary btn-sm" onclick="approveShop(${s.id})">Mở lại</button>
+                                    ` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Không có gian hàng nào ở trạng thái ${currentStatusTab}.</td></tr>`;
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">${e.message}</td></tr>`;
+            }
+        }
+
+        async function approveShop(shopId) {
+            if (!confirm('Bạn có chắc muốn phê duyệt gian hàng này? Hệ thống sẽ tự động cấp quyền ROLE_SELLER cho chủ gian hàng.')) return;
+            try {
+                await apiRequest(`/admin/shops/${shopId}/approve`, 'PATCH', null, true);
+                showToast('Đã phê duyệt gian hàng thành công!', 'success');
+                loadShops();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function rejectShop(shopId) {
+            const reason = prompt('Nhập lý do từ chối đơn đăng ký:');
+            if (!reason) return;
+            try {
+                await apiRequest(`/admin/shops/${shopId}/reject?reason=${encodeURIComponent(reason)}`, 'PATCH', null, true);
+                showToast('Đã từ chối đơn đăng ký gian hàng!', 'success');
+                loadShops();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function suspendShop(shopId) {
+            const reason = prompt('Nhập lý do tạm khóa gian hàng:');
+            if (!reason) return;
+            try {
+                await apiRequest(`/admin/shops/${shopId}/suspend?reason=${encodeURIComponent(reason)}`, 'PATCH', null, true);
+                showToast('Đã tạm khóa gian hàng!', 'success');
+                loadShops();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadShops);
+    </script>
+</body>
+</html>
+

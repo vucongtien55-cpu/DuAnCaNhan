@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý kho hàng - Kênh Người Bán</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .inventory-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-top: 24px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .data-table th {
+            background: #faf8f5;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" id="siteHeader"></header>
+
+    <div class="container section-block">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <a href="/seller-dashboard.html" style="font-size: 13px; color: var(--text-muted);">← Quay lại Dashboard</a>
+                <h1 style="font-size: 26px; font-weight: 800; margin-top: 4px;" data-i18n="inventory_manage">Quản lý kho hàng & Tồn kho</h1>
+            </div>
+            <div>
+                <button class="btn btn-outline btn-sm" onclick="loadInventoryTable()">🔄 Làm mới</button>
+            </div>
+        </div>
+
+        <div class="inventory-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm / Biến thể</th>
+                        <th>Mã SKU</th>
+                        <th>Sẵn bán</th>
+                        <th>Đang giữ chỗ</th>
+                        <th>Cập nhật gần nhất</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTbody">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px;">Đang tải danh sách tồn kho...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Adjust Stock -->
+    <div id="adjustModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 100%; max-width: 440px; box-shadow: var(--shadow-lg);">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Điều chỉnh / Nhập kho</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;" id="modalVariantTitle">Biến thể: ...</p>
+
+            <form id="adjustForm" onsubmit="handleAdjustSubmit(event)">
+                <div class="form-group">
+                    <label class="form-label">Số lượng thay đổi (dương là nhập thêm, âm là xuất bớt) *</label>
+                    <input type="number" id="changeQtyInput" class="form-control" placeholder="+10 hoặc -5" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ghi chú điều chỉnh</label>
+                    <input type="text" id="noteInput" class="form-control" placeholder="Nhập thêm lô hàng xưởng chế tác mới...">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeAdjustModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Xác nhận điều chỉnh</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal History -->
+    <div id="historyModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 100%; max-width: 620px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 18px; font-weight: 800;">Lịch sử biến động kho</h3>
+                <button onclick="closeHistoryModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+            </div>
+            <div id="historyListContainer">Đang tải lịch sử...</div>
+        </div>
+    </div>
+
+    <footer class="site-footer" id="siteFooter"></footer>
+
+    <script src="/js/translations.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/navbar.js"></script>
+    <script>
+        let currentAdjustVariantId = null;
+
+        async function loadInventoryTable() {
+            if (!isLoggedIn()) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const tbody = document.getElementById('inventoryTbody');
+
+            try {
+                const prodRes = await apiRequest('/seller/products?size=50', 'GET', null, true);
+                if (prodRes && prodRes.data && prodRes.data.content) {
+                    const rows = [];
+                    prodRes.data.content.forEach(p => {
+                        if (p.variants) {
+                            p.variants.forEach(v => {
+                                rows.push({
+                                    productName: p.name,
+                                    variantName: v.variantName,
+                                    variantId: v.id,
+                                    sku: v.sku,
+                                    stockAvailable: v.stockAvailable
+                                });
+                            });
+                        }
+                    });
+
+                    if (rows.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">Chưa có biến thể nào trong kho.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = rows.map(r => `
+                        <tr>
+                            <td>
+                                <strong>${r.productName}</strong>
+                                <div style="font-size: 12px; color: var(--text-muted);">${r.variantName}</div>
+                            </td>
+                            <td><code>${r.sku}</code></td>
+                            <td>
+                                <strong style="font-size: 16px; color: ${r.stockAvailable < 5 ? 'var(--danger)' : 'var(--success)'};">
+                                    ${r.stockAvailable}
+                                </strong>
+                            </td>
+                            <td><span class="badge badge-info">Giữ chỗ đơn</span></td>
+                            <td><span style="font-size: 12px; color: var(--text-muted);">Vừa cập nhật</span></td>
+                            <td>
+                                <button class="btn btn-outline btn-sm" onclick="openAdjustModal(${r.variantId}, '${r.variantName} (${r.sku})')">
+                                    ± Nhập/Xuất kho
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="openHistoryModal(${r.variantId})">
+                                    📜 Lịch sử
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">${e.message}</td></tr>`;
+            }
+        }
+
+        function openAdjustModal(variantId, title) {
+            currentAdjustVariantId = variantId;
+            document.getElementById('modalVariantTitle').innerText = title;
+            document.getElementById('adjustForm').reset();
+            document.getElementById('adjustModal').style.display = 'flex';
+        }
+
+        function closeAdjustModal() {
+            document.getElementById('adjustModal').style.display = 'none';
+        }
+
+        async function handleAdjustSubmit(e) {
+            e.preventDefault();
+            const changeQty = parseInt(document.getElementById('changeQtyInput').value);
+            const note = document.getElementById('noteInput').value.trim() || 'Điều chỉnh thủ công';
+
+            try {
+                await apiRequest(`/seller/inventory/variants/${currentAdjustVariantId}/adjust?changeQuantity=${changeQty}&note=${encodeURIComponent(note)}`, 'POST', null, true);
+                showToast('Điều chỉnh tồn kho thành công!', 'success');
+                closeAdjustModal();
+                loadInventoryTable();
+            } catch (err) {
+                showToast(err.message || 'Lỗi khi điều chỉnh tồn kho', 'error');
+            }
+        }
+
+        async function openHistoryModal(variantId) {
+            const container = document.getElementById('historyListContainer');
+            container.innerHTML = 'Đang tải lịch sử...';
+            document.getElementById('historyModal').style.display = 'flex';
+
+            try {
+                const res = await apiRequest(`/seller/inventory/variants/${variantId}/history`, 'GET', null, true);
+                if (res && res.data && res.data.length > 0) {
+                    container.innerHTML = `
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Loại giao dịch</th>
+                                    <th>Thay đổi</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${res.data.map(h => `
+                                    <tr>
+                                        <td>${formatDate(h.createdAt)}</td>
+                                        <td><span class="badge badge-dark">${h.transactionType}</span></td>
+                                        <td style="font-weight: 700; color: ${h.changeQuantity > 0 ? 'var(--success)' : 'var(--danger)'};">
+                                            ${h.changeQuantity > 0 ? '+' : ''}${h.changeQuantity}
+                                        </td>
+                                        <td style="font-size: 13px; color: var(--text-muted);">${h.note || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">Chưa có lịch sử biến động kho cho biến thể này.</div>';
+                }
+            } catch (e) {
+                container.innerHTML = `<div style="color: var(--danger);">${e.message}</div>`;
+            }
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadInventoryTable);
+    </script>
+</body>
+</html>
+
