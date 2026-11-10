@@ -1,6 +1,6 @@
-// 8. Bộ điều khiển JS cho trang dashboard.html
-let sectionDateFilter = '';
-let currentFilter = 'all'; // 'all', 'month', 'custom_range', hoặc 'YYYY-MM-DD'
+// 8. JS controller for dashboard.html
+let sectionDateFilter = ''; // Thêm dòng này ở đầu file dashboard.js
+let currentFilter = 'all'; // 'all', 'month', 'custom_range', or 'YYYY-MM-DD'
 let categoryChartInstance = null;
 let sectionMonthFilter = '';
 // Lưu tháng đang chọn cho phần báo cáo ngày
@@ -26,37 +26,37 @@ function setDashboardFilter(filter) {
 
     if (allBtn && monthBtn && customInput) {
         if (filter === 'all') {
-            // Tất cả thời gian
+            // All time
             allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-indigo-600 text-white shadow-sm";
             monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
             customInput.value = "";
             if (startInput) startInput.value = "";
             if (endInput) endInput.value = "";
         } else if (filter === 'month') {
-            // Tháng này
+            // This Month
             allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
             monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-indigo-600 text-white shadow-sm";
             customInput.value = "";
             if (startInput) startInput.value = "";
             if (endInput) endInput.value = "";
         } else if (filter === 'custom_range') {
-            // Khoảng ngày tùy chỉnh
+            // Custom date range
             allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
             monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
             customInput.value = "";
         } else {
-            // Ngày cụ thể (YYYY-MM-DD hoặc lựa chọn tùy chỉnh)
+            // Specific Date (YYYY-MM-DD or custom selection)
             allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
             monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
             if (startInput) startInput.value = "";
             if (endInput) endInput.value = "";
 
-            // Gán giá trị cho ô nhập ngày nếu là chuỗi ngày hợp lệ (YYYY-MM-DD)
+            // Assign value to date input if it is a valid date string (YYYY-MM-DD)
             const parts = filter.split('-');
             if (parts.length === 3) {
                 customInput.value = filter;
             } else if (parts.length === 2) {
-                // Xử lý dự phòng cho YYYY-MM -> đặt thành YYYY-MM-01
+                // Fallback for YYYY-MM -> set to YYYY-MM-01
                 customInput.value = `${filter}-01`;
             } else {
                 customInput.value = "";
@@ -86,7 +86,7 @@ function changeDashboardMonth(direction) {
     const today = new Date();
 
     if (currentFilter === 'all') {
-        // Nếu đang ở chế độ 'tất cả', chuyển sang ngày hiện tại
+        // If navigating from all, go to current date
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
@@ -103,7 +103,7 @@ function changeDashboardMonth(direction) {
         return;
     }
 
-    // Điều hướng khoảng ngày tùy chỉnh (di chuyển ngày bắt đầu và kết thúc thêm 1 tháng)
+    // Custom date range navigation (moves start and end date by 1 month)
     if (currentFilter === 'custom_range') {
         const startInput = document.getElementById('filter-start-date');
         const endInput = document.getElementById('filter-end-date');
@@ -127,7 +127,7 @@ function changeDashboardMonth(direction) {
         return;
     }
 
-    // Kiểm tra nếu currentFilter là năm 4 chữ số
+    // Check if currentFilter is a 4-digit year
     if (currentFilter.length === 4 && !isNaN(currentFilter)) {
         const currentYear = parseInt(currentFilter, 10);
         const newYear = currentYear + direction;
@@ -135,14 +135,14 @@ function changeDashboardMonth(direction) {
         return;
     }
 
-    // Nếu không, đó là một ngày cụ thể YYYY-MM-DD hoặc YYYY-MM
+    // Otherwise, it's a specific date YYYY-MM-DD or YYYY-MM
     const parts = currentFilter.split('-');
     if (parts.length === 3) {
         const y = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10) - 1; // 0-11
         const d = parseInt(parts[2], 10);
 
-        // Di chuyển từng tháng một nhưng vẫn giữ nguyên ngày (hành vi tiêu chuẩn)
+        // Move month-by-month but keeping the day (standard behavior)
         const targetDate = new Date(y, m + direction, d);
         const newYear = targetDate.getFullYear();
         const newMonth = String(targetDate.getMonth() + 1).padStart(2, '0');
@@ -201,7 +201,7 @@ function renderDashboard() {
     const lang = state.language;
     const t = TRANSLATIONS[lang];
 
-    // Áp dụng các bản dịch văn bản nhanh một cách linh hoạt
+    // Apply quick text translations dynamically
     document.getElementById('dashboard-heading').innerText = t.reportTab;
 
     let subText = lang === 'vi' ? 'Tổng quan tình hình thu chi & ngân sách' : 'Overall status of income, expenses & budgets';
@@ -271,11 +271,11 @@ function renderDashboard() {
     const btnRestoreDemo = document.getElementById('btn-restore-demo');
     if (btnRestoreDemo) btnRestoreDemo.innerHTML = `<i data-lucide="refresh-cw" class="w-3 h-3 text-indigo-500 animate-hover"></i> ${lang === 'vi' ? 'Khôi phục mẫu dữ liệu' : 'Reset preset demo'}`;
 
-    // Lọc các giao dịch dựa trên ngày nếu bộ lọc là 'month', 'custom_range', hoặc ngày cụ thể
+    // Filter transactions based on date if filter is 'month', 'custom_range', or specific date
     let list = state.transactions || [];
 
     if (currentFilter === 'month') {
-        const today = new Date(); // Năm 2026, hãy xem xét tháng 6/7 năm 2026
+        const today = new Date(); // In 2026, let's look at June/July 2026
         const curYear = today.getFullYear();
         const curMonth = today.getMonth(); // 0-11
 
@@ -315,20 +315,20 @@ function renderDashboard() {
     } else if (currentFilter !== 'all') {
         const parts = currentFilter.split('-');
         if (parts.length === 3) {
-            // Lọc theo ngày chính xác (YYYY-MM-DD)
+            // Filter by Exact Date (YYYY-MM-DD)
             subText += lang === 'vi' ? ` (Ngày ${parts[2]}/${parts[1]}/${parts[0]})` : ` (Date ${parts[2]}/${parts[1]}/${parts[0]})`;
             list = list.filter(tx => tx.date === currentFilter);
         } else if (parts.length === 2) {
-            // Lọc theo tháng (YYYY-MM)
+            // Filter by Month (YYYY-MM)
             const filterYear = parseInt(parts[0], 10);
-            const filterMonth = parseInt(parts[1], 10) - 1; // Tháng trong JS bắt đầu từ 0
+            const filterMonth = parseInt(parts[1], 10) - 1; // 0-11 JS Month is 0-indexed
             subText += lang === 'vi' ? ` (Tháng ${parts[1]}/${parts[0]})` : ` (Month ${parts[1]}/${parts[0]})`;
             list = list.filter(tx => {
                 const txDate = new Date(tx.date);
                 return txDate.getFullYear() === filterYear && txDate.getMonth() === filterMonth;
             });
         } else if (parts.length === 1 && currentFilter.length === 4 && !isNaN(currentFilter)) {
-            // Lọc theo năm
+            // Filter by Year
             const filterYear = parseInt(currentFilter, 10);
             subText += lang === 'vi' ? ` (Năm ${filterYear})` : ` (Year ${filterYear})`;
             list = list.filter(tx => {
@@ -342,7 +342,7 @@ function renderDashboard() {
 
     document.getElementById('dashboard-sub').innerText = subText;
 
-    // Tính toán các thông số đo lường
+    // Calculate Metrics
     let totalIncome = 0;
     let totalExpense = 0;
 
@@ -356,12 +356,12 @@ function renderDashboard() {
 
     const balance = totalIncome - totalExpense;
 
-    // Hiển thị các thông số
+    // Render metrics
     document.getElementById('balance-value').innerText = formatVND(balance);
     document.getElementById('income-value').innerText = formatVND(totalIncome);
     document.getElementById('expense-value').innerText = formatVND(totalExpense);
 
-    // Nhóm chi tiêu theo Danh mục
+    // Group Expenses by Category
     const expenseMap = {};
     list.forEach(tx => {
         if (tx.type === 'EXPENSE') {
@@ -373,16 +373,16 @@ function renderDashboard() {
         }
     });
 
-    // Hiển thị Biểu đồ và phân tích danh mục
+    // Render Charts and category breakdowns
     renderCategoryBreakdown(expenseMap, totalExpense);
 
-    // Hiển thị thanh tiến độ Hạn mức Ngân sách
+    // Render Budgets Progress meters
     renderBudgetMeters(expenseMap);
 
-    // Hiển thị Phân tích chi tiêu hàng ngày
+    // Render Daily Spending Breakdown
     renderDailySpendingBreakdown(list);
 
-    // Hiển thị Danh sách Giao dịch gần đây
+    // Render Recent Transactions
     renderRecentTransactionsList(list.slice(0, 5));
 
     if (window.lucide) window.lucide.createIcons();
@@ -419,7 +419,7 @@ function renderCategoryBreakdown(expenseMap, totalExpense) {
     const chartLabels = [];
     const chartColors = [];
 
-    // Sắp xếp danh mục theo số tiền giảm dần
+    // Sort categories by amount descending
     const sortedCats = categories.map(cat => ({
         name: cat,
         amount: expenseMap[cat],
@@ -433,7 +433,7 @@ function renderCategoryBreakdown(expenseMap, totalExpense) {
         chartLabels.push(translateCategory(item.name));
         chartColors.push(item.color);
 
-        // Tạo nhãn chi tiết bên cạnh
+        // Create side detailed label
         const labelRow = document.createElement('div');
         labelRow.className = 'flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-950 transition-all';
         labelRow.innerHTML = `
@@ -449,7 +449,7 @@ function renderCategoryBreakdown(expenseMap, totalExpense) {
         labelsContainer.appendChild(labelRow);
     });
 
-    // Hiển thị/Cập nhật Thực thể ChartJS
+    // Render/Update ChartJS Instance
     const ctx = document.getElementById('category-pie-chart').getContext('2d');
 
     if (categoryChartInstance) {
@@ -532,7 +532,7 @@ function renderBudgetMeters(expenseMap) {
         container.appendChild(meter);
     });
 
-    // Hiển thị cảnh báo ngân sách nếu có bất kỳ danh mục nào vượt hạn mức
+    // Display budget alarm if any category exceeded
     const alarmEl = document.getElementById('budget-alarm');
     if (alarmEl) {
         if (totalExceededCount > 0) {
@@ -568,7 +568,7 @@ function renderRecentTransactionsList(transactions) {
         const color = getCategoryColor(tx.category);
         const icon = getCategoryIcon(tx.category);
 
-        // Định dạng ngày gọn gàng
+        // Formatting date neatly
         const dateFormatted = new Date(tx.date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
         item.innerHTML = `
@@ -579,7 +579,7 @@ function renderRecentTransactionsList(transactions) {
         <div class="min-w-0">
           <h5 class="text-xs font-extrabold text-slate-800 dark:text-white truncate">${translateUserText(tx.title)}</h5>
           <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md" style="background-color: ${color}; color: ${color}">${translateCategory(tx.category)}</span>
+            <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md" style="background-color: ${color}20; color: ${color}">${translateCategory(tx.category)}</span>
             <span class="text-[10px] font-semibold text-slate-400">${dateFormatted}</span>
           </div>
         </div>
@@ -721,7 +721,7 @@ function renderDailySpendingBreakdown(allTransactions) {
     if (window.lucide) window.lucide.createIcons();
 }
 
-// Chạy khởi tạo
+// Run initialization
 if (document.readyState !== 'loading') {
     injectSharedLayout('dashboard');
     renderDashboard();

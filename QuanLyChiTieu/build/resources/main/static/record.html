@@ -1,14 +1,35 @@
+<!--
+  ============================================================
+  FILE: record.html
+  CHỨC NĂNG: Giao diện trang "Ghi chép giao dịch"
+  - Form này dùng để THÊM MỚI hoặc SỬA một giao dịch Thu/Chi
+  - Logic xử lý (submit form, validate, lưu dữ liệu...) nằm
+    trong file js/record.js, KHÔNG viết ở đây
+
+  TÓM TẮT ĐỂ THUYẾT TRÌNH:
+  1. File HTML này chỉ mô tả GIAO DIỆN (không chứa logic xử lý)
+  2. Có 1 form chính <form id="record-form"> chứa các trường:
+     - 2 nút chọn loại giao dịch (Khoản Chi / Khoản Thu)
+     - Ô nhập số tiền, tiêu đề, ngày, ghi chú
+     - Dropdown chọn danh mục (nội dung được JS đổ vào động)
+  3. Mỗi phần tử quan trọng đều có "id" riêng để file record.js
+     có thể tìm và thao tác (đọc/ghi giá trị, đổi nội dung...)
+  ============================================================
+-->
 <!doctype html>
 <html lang="vi" class="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ghi chép giao dịch - Sổ Thu Chi Cá Nhân</title>
-  <!-- Google Fonts -->
+
+  <!-- Nhúng font chữ từ Google Fonts: Inter (chữ thường) và JetBrains Mono (số liệu) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-  <!-- Tailwind Play CDN -->
+
+  <!-- Nhúng Tailwind CSS (thư viện giúp viết CSS nhanh bằng class có sẵn) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // Cấu hình thêm cho Tailwind: bật chế độ Dark Mode + khai báo font chữ riêng
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -21,84 +42,116 @@
       },
     };
   </script>
-  <link rel="stylesheet" href="css/style.css" />
-  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="css/style.css" /> <!-- CSS tùy chỉnh riêng của dự án -->
+  <script src="https://unpkg.com/lucide@latest"></script> <!-- Thư viện icon (biểu tượng) Lucide -->
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
-<!-- Wrapper where state.js will inject the sidebar & layout around the inner HTML -->
+<!-- ========== KHUNG BAO NGOÀI ==========
+     Thẻ này rất quan trọng: file state.js sẽ tự động chèn thêm
+     sidebar (menu bên trái) và header bao quanh nội dung bên trong đây,
+     nên chúng ta KHÔNG cần tự viết sidebar trong từng trang HTML -->
 <div id="app-root">
 
-  <!-- Inside content to be wrapped -->
   <div class="max-w-xl mx-auto">
-    <!-- Breadcrumbs or Back links -->
+
+    <!-- Liên kết quay lại trang Dashboard (Tổng quan) -->
     <div class="mb-6">
       <a href="dashboard.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-indigo-500 transition-all">
-        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span id="back-label">Quay lại Tổng quan</span>
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+        <!-- id="back-label": chữ "Quay lại Tổng quan" này sẽ được record.js
+             tự động dịch sang tiếng Anh nếu người dùng đổi ngôn ngữ -->
+        <span id="back-label">Quay lại Tổng quan</span>
       </a>
     </div>
 
-    <!-- Main Form Card -->
+    <!-- ========== KHỐI FORM CHÍNH (thẻ Card bao quanh) ========== -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-6 md:p-8 relative shadow-sm">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white mb-5 pb-3 border-b border-slate-100 dark:border-slate-800/40" id="form-header">Ghi chép giao dịch mới</h2>
 
+      <!-- id="form-header": tiêu đề này sẽ đổi động thành
+           "Ghi chép giao dịch mới" (thêm mới) hoặc "Chỉnh sửa giao dịch" (sửa)
+           tùy theo record.js kiểm tra URL có tham số ?edit=... hay không -->
+      <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white mb-5 pb-3 border-b border-slate-100 dark:border-slate-800/40" id="form-header">Ghi chép giao dịch mới 💰</h2>
+
+      <!-- id="record-form": khi người dùng bấm nút "Lưu" (submit),
+           sự kiện này được lắng nghe và xử lý trong record.js -->
       <form id="record-form" class="space-y-4">
-        <!-- Transaction Type Switch Tabs -->
+
+        <!-- ---- 1. CHỌN LOẠI GIAO DỊCH (Chi / Thu) ---- -->
         <div>
           <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="type-label">Phân loại</label>
           <div class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/40 dark:border-slate-800/40">
+            <!-- Khi bấm nút này, gọi hàm setRecordType('EXPENSE') trong record.js
+                 để chuyển sang chế độ "Khoản Chi" -->
             <button type="button" onclick="setRecordType('EXPENSE')" id="type-expense-btn" class="py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer bg-white dark:bg-slate-900 text-rose-500 shadow-sm border border-slate-200/20 dark:border-slate-800">Khoản Chi</button>
+            <!-- Tương tự, nút này gọi setRecordType('INCOME') để chuyển sang "Khoản Thu" -->
             <button type="button" onclick="setRecordType('INCOME')" id="type-income-btn" class="py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Khoản Thu</button>
           </div>
         </div>
 
-        <!-- Amount Input -->
+        <!-- ---- 2. Ô NHẬP SỐ TIỀN ---- -->
         <div>
           <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="amount-label">Số tiền (VND)</label>
           <div class="relative flex items-center">
             <div class="absolute left-3.5 text-xs font-bold text-slate-400">₫</div>
+            <!-- type="number": chỉ cho nhập số; required: bắt buộc phải nhập; min="0": không cho số âm -->
             <input type="number" id="tx-amount" required class="w-full pl-8 pr-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold font-mono text-slate-800 dark:text-white" placeholder="250000" min="0" step="1" />
           </div>
         </div>
 
-        <!-- Title Input -->
+        <!-- ---- 3. Ô NHẬP TIÊU ĐỀ GIAO DỊCH ---- -->
         <div>
           <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="title-label">Tiêu đề / Tên giao dịch</label>
           <input type="text" id="tx-title" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800 dark:text-white" placeholder="Ăn trưa, Nhận lương, Đăng ký gym..." />
         </div>
 
-        <!-- Category Selector -->
+        <!-- ---- 4. DROPDOWN CHỌN DANH MỤC ---- -->
         <div>
           <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="category-label">Danh mục</label>
+          <!-- Lưu ý quan trọng: bên trong thẻ <select> này KHÔNG có sẵn <option> nào cả.
+               Toàn bộ <option> sẽ được hàm populateCategories() trong record.js
+               tạo ra và thêm vào bằng JavaScript (gọi là "render động") -->
           <select id="tx-category" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900">
             <!-- Loaded dynamically -->
           </select>
         </div>
 
-        <!-- Date Selector -->
+        <!-- ---- 5. Ô CHỌN NGÀY ---- -->
         <div>
           <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="date-label">Ngày thực hiện</label>
-          <input type="date" id="tx-date" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold font-mono text-slate-800 dark:text-white" />
+          <!-- type="date": trình duyệt tự hiện lịch chọn ngày.
+               Giá trị mặc định (hôm nay) được gán bằng JavaScript trong record.js -->
+          <input type="date" id="tx-date" required cl  ass="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold font-mono text-slate-800 dark:text-white" />
         </div>
 
-        <!-- Notes TextArea -->
+        <!-- ---- 6. Ô NHẬP GHI CHÚ (không bắt buộc) ---- -->
         <div>
           <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="notes-label">Ghi chú (Tùy chọn)</label>
           <textarea id="tx-notes" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-white custom-scrollbar h-20 resize-none" placeholder="Nhập ghi chú thêm cho giao dịch..."></textarea>
         </div>
 
-        <!-- Actions buttons -->
+        <!-- ---- 7. NÚT HỦY / LƯU ---- -->
         <div class="flex items-center gap-2.5 pt-3">
+          <!-- Nút Hủy chỉ đơn giản là 1 liên kết <a> điều hướng về trang Dashboard,
+               KHÔNG thực hiện lưu dữ liệu gì cả -->
           <a href="dashboard.html" class="flex-grow py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-400 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer uppercase tracking-wider" id="cancel-btn">Hủy bỏ</a>
+          <!-- type="submit": khi bấm nút này, sự kiện "submit" của <form id="record-form">
+               phía trên sẽ được kích hoạt, và record.js sẽ xử lý việc lưu dữ liệu -->
           <button type="submit" class="flex-grow py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition-all flex items-center justify-center gap-1 cursor-pointer uppercase tracking-wider" id="save-btn">Lưu ghi chép</button>
         </div>
-      </form>
-    </div>
+
+      </form> <!-- kết thúc form -->
+    </div> <!-- kết thúc card -->
   </div>
+</div> <!-- kết thúc #app-root -->
 
-</div>
-
-<!-- SCRIPTS -->
+<!-- ========== NẠP CÁC FILE JAVASCRIPT ==========
+     Thứ tự nạp RẤT QUAN TRỌNG vì file sau phụ thuộc vào file trước:
+     1) translations.js -> chứa bảng dịch tiếng Việt/Anh
+     2) data.js          -> chứa dữ liệu/danh mục mặc định
+     3) state.js         -> quản lý biến "state" dùng chung + sidebar
+     4) record.js        -> logic riêng của TRANG NÀY (chạy sau cùng) -->
 <script src="js/translations.js?v=2026_01"></script>
 <script src="js/data.js?v=2026_01"></script>
 <script src="js/state.js?v=2026_01"></script>

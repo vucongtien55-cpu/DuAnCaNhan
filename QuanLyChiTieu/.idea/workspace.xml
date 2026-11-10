@@ -5,13 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5433bf23-aec1-4a14-866a-6b03a609b528" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../BanHangOnline/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../BanHangOnline/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/BudgetService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/BudgetService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/CategoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/CategoryService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/SavingsJarService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/SavingsJarService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/TransactionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/TransactionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/quanlychitieu/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/js/dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/js/dashboard.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/js/savings.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/js/savings.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/js/state.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/js/state.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/js/translations.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/js/translations.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +40,7 @@
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="126" />
+    <option name="cachedIndexableFilesCount" value="123" />
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
@@ -65,65 +63,6 @@
     <commands />
     <urls />
   </component>
-  <component name="NextEditCompletionFeaturesState">
-    <decayedCancelled>
-      <entry key="MS100" value="1.0012907883252258" />
-      <entry key="MS500" value="1.8228688939786972" />
-      <entry key="S2" value="5.972748989726086" />
-      <entry key="S5" value="8.508522438542458" />
-      <entry key="S10" value="9.65454703636513" />
-      <entry key="S30" value="10.5271136958632" />
-      <entry key="S60" value="10.760353767970294" />
-      <entry key="M2" value="10.879364140366853" />
-      <entry key="M5" value="10.951549042785707" />
-      <entry key="M10" value="10.975741621985067" />
-      <entry key="M15" value="10.98382042730908" />
-      <entry key="M30" value="10.991906550885439" />
-      <entry key="H1" value="10.995952359294769" />
-      <entry key="H2" value="10.997975950553412" />
-      <entry key="H4" value="10.998987917996088" />
-      <entry key="D1" value="10.99983131170977" />
-      <entry key="W1" value="10.99997590147797" />
-    </decayedCancelled>
-    <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="0.0" />
-      <entry key="S10" value="0.0" />
-      <entry key="S30" value="0.0" />
-      <entry key="S60" value="0.0" />
-      <entry key="M2" value="0.0" />
-      <entry key="M5" value="0.0" />
-      <entry key="M10" value="0.0" />
-      <entry key="M15" value="0.0" />
-      <entry key="M30" value="0.0" />
-      <entry key="H1" value="0.0" />
-      <entry key="H2" value="0.0" />
-      <entry key="H4" value="0.0" />
-      <entry key="D1" value="0.0" />
-      <entry key="W1" value="0.0" />
-    </decayedSelected>
-    <decayedShown>
-      <entry key="MS100" value="0.9087048905564639" />
-      <entry key="MS500" value="1.739225486373752" />
-      <entry key="S2" value="5.847661276462776" />
-      <entry key="S5" value="8.42957475949153" />
-      <entry key="S10" value="9.608211576526978" />
-      <entry key="S30" value="10.50988656916664" />
-      <entry key="S60" value="10.751499228373726" />
-      <entry key="M2" value="10.874875169431302" />
-      <entry key="M5" value="10.949738455660942" />
-      <entry key="M10" value="10.974833812589326" />
-      <entry key="M15" value="10.983214660776843" />
-      <entry key="M30" value="10.991603387185945" />
-      <entry key="H1" value="10.995800707280535" />
-      <entry key="H2" value="10.997900106998149" />
-      <entry key="H4" value="10.998949991830543" />
-      <entry key="D1" value="10.99982499007267" />
-      <entry key="W1" value="10.99997499837203" />
-    </decayedShown>
-  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -132,57 +71,35 @@
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
-  <component name="ProjectSessionTemplates">
-    <option name="panelTemplate">
-      <template>
-        <option name="modeId" value="Agent" />
-        <option name="model">
-          <model>
-            <option name="modelType" value="builtin_id" />
-            <option name="modelValue" value="auto" />
-          </model>
-        </option>
-        <option name="targetType" value="BACKGROUND" />
-        <option name="worktreeMode" value="WORKSPACE" />
-      </template>
-    </option>
-  </component>
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Gradle.Build QuanLyChiTieu.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;Spring Boot.QuanLyChiTieuApplication.executor&quot;: &quot;Run&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;copilot.chat.legacySessionMetadata.migrated&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Gradle.Build QuanLyChiTieu.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.QuanLyChiTieuApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
     ]
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="QuanLyChiTieuApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
@@ -196,8 +113,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-a203e0a19954-intellij.indexing.shared.core-IU-262.10968.63" />
-        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.10968.63" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.33514.17" />
       </set>
     </attachedChunks>
   </component>
@@ -208,23 +124,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1783553715713</updated>
-      <workItem from="1784851769270" duration="11033000" />
-      <workItem from="1784888265092" duration="18000" />
-      <workItem from="1785738604534" duration="4545000" />
-      <workItem from="1792196721579" duration="960000" />
-      <workItem from="1792541368962" duration="603000" />
-      <workItem from="1792542122563" duration="534000" />
-      <workItem from="1792542870904" duration="2361000" />
-      <workItem from="1792546091281" duration="168000" />
+      <workItem from="1784851769270" duration="8127000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="XSLT-Support.FileAssociations.UIState">
-    <expand />
-    <select />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
