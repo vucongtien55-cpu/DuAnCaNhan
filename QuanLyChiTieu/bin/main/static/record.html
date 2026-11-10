@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="vi" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghi chép giao dịch - Sổ Thu Chi Cá Nhân</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+<!-- Wrapper where state.js will inject the sidebar & layout around the inner HTML -->
+<div id="app-root">
+
+  <!-- Inside content to be wrapped -->
+  <div class="max-w-xl mx-auto">
+    <!-- Breadcrumbs or Back links -->
+    <div class="mb-6">
+      <a href="dashboard.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-indigo-500 transition-all">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> <span id="back-label">Quay lại Tổng quan</span>
+      </a>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl p-6 md:p-8 relative shadow-sm">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white mb-5 pb-3 border-b border-slate-100 dark:border-slate-800/40" id="form-header">Ghi chép giao dịch mới</h2>
+
+      <form id="record-form" class="space-y-4">
+        <!-- Transaction Type Switch Tabs -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="type-label">Phân loại</label>
+          <div class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/40 dark:border-slate-800/40">
+            <button type="button" onclick="setRecordType('EXPENSE')" id="type-expense-btn" class="py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer bg-white dark:bg-slate-900 text-rose-500 shadow-sm border border-slate-200/20 dark:border-slate-800">Khoản Chi</button>
+            <button type="button" onclick="setRecordType('INCOME')" id="type-income-btn" class="py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Khoản Thu</button>
+          </div>
+        </div>
+
+        <!-- Amount Input -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="amount-label">Số tiền (VND)</label>
+          <div class="relative flex items-center">
+            <div class="absolute left-3.5 text-xs font-bold text-slate-400">₫</div>
+            <input type="number" id="tx-amount" required class="w-full pl-8 pr-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold font-mono text-slate-800 dark:text-white" placeholder="250000" min="0" step="1" />
+          </div>
+        </div>
+
+        <!-- Title Input -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="title-label">Tiêu đề / Tên giao dịch</label>
+          <input type="text" id="tx-title" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800 dark:text-white" placeholder="Ăn trưa, Nhận lương, Đăng ký gym..." />
+        </div>
+
+        <!-- Category Selector -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="category-label">Danh mục</label>
+          <select id="tx-category" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900">
+            <!-- Loaded dynamically -->
+          </select>
+        </div>
+
+        <!-- Date Selector -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="date-label">Ngày thực hiện</label>
+          <input type="date" id="tx-date" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold font-mono text-slate-800 dark:text-white" />
+        </div>
+
+        <!-- Notes TextArea -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider" id="notes-label">Ghi chú (Tùy chọn)</label>
+          <textarea id="tx-notes" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-white custom-scrollbar h-20 resize-none" placeholder="Nhập ghi chú thêm cho giao dịch..."></textarea>
+        </div>
+
+        <!-- Actions buttons -->
+        <div class="flex items-center gap-2.5 pt-3">
+          <a href="dashboard.html" class="flex-grow py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-400 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer uppercase tracking-wider" id="cancel-btn">Hủy bỏ</a>
+          <button type="submit" class="flex-grow py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition-all flex items-center justify-center gap-1 cursor-pointer uppercase tracking-wider" id="save-btn">Lưu ghi chép</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPTS -->
+<script src="js/translations.js"></script>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/record.js"></script>
+</body>
+</html>

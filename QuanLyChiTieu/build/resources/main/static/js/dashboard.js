@@ -1,0 +1,733 @@
+// 8. Bộ điều khiển JS cho trang dashboard.html
+let sectionDateFilter = '';
+let currentFilter = 'all'; // 'all', 'month', 'custom_range', hoặc 'YYYY-MM-DD'
+let categoryChartInstance = null;
+let sectionMonthFilter = '';
+// Lưu tháng đang chọn cho phần báo cáo ngày
+
+window.updateDailySectionMonth = function(val) {
+    sectionMonthFilter = val;
+    renderDashboard();
+};
+window.updateDailySectionDate = function(val) {
+    sectionDateFilter = val;
+    renderDashboard();
+};
+
+function setDashboardFilter(filter) {
+    currentFilter = filter;
+
+    const allBtn = document.getElementById('filter-all-btn');
+    const monthBtn = document.getElementById('filter-month-btn');
+    const customInput = document.getElementById('filter-custom-date');
+
+    const startInput = document.getElementById('filter-start-date');
+    const endInput = document.getElementById('filter-end-date');
+
+    if (allBtn && monthBtn && customInput) {
+        if (filter === 'all') {
+            // Tất cả thời gian
+            allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-indigo-600 text-white shadow-sm";
+            monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
+            customInput.value = "";
+            if (startInput) startInput.value = "";
+            if (endInput) endInput.value = "";
+        } else if (filter === 'month') {
+            // Tháng này
+            allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
+            monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-indigo-600 text-white shadow-sm";
+            customInput.value = "";
+            if (startInput) startInput.value = "";
+            if (endInput) endInput.value = "";
+        } else if (filter === 'custom_range') {
+            // Khoảng ngày tùy chỉnh
+            allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
+            monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
+            customInput.value = "";
+        } else {
+            // Ngày cụ thể (YYYY-MM-DD hoặc lựa chọn tùy chỉnh)
+            allBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
+            monthBtn.className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800/80";
+            if (startInput) startInput.value = "";
+            if (endInput) endInput.value = "";
+
+            // Gán giá trị cho ô nhập ngày nếu là chuỗi ngày hợp lệ (YYYY-MM-DD)
+            const parts = filter.split('-');
+            if (parts.length === 3) {
+                customInput.value = filter;
+            } else if (parts.length === 2) {
+                // Xử lý dự phòng cho YYYY-MM -> đặt thành YYYY-MM-01
+                customInput.value = `${filter}-01`;
+            } else {
+                customInput.value = "";
+            }
+        }
+    }
+
+    renderDashboard();
+}
+window.setDashboardFilter = setDashboardFilter;
+
+function applyDateRangeFilter() {
+    const startInput = document.getElementById('filter-start-date');
+    const endInput = document.getElementById('filter-end-date');
+    if (!startInput || !endInput) return;
+
+    const startVal = startInput.value;
+    const endVal = endInput.value;
+
+    if (startVal || endVal) {
+        setDashboardFilter('custom_range');
+    }
+}
+window.applyDateRangeFilter = applyDateRangeFilter;
+
+function changeDashboardMonth(direction) {
+    const today = new Date();
+
+    if (currentFilter === 'all') {
+        // Nếu đang ở chế độ 'tất cả', chuyển sang ngày hiện tại
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        setDashboardFilter(`${yyyy}-${mm}-${dd}`);
+        return;
+    }
+
+    if (currentFilter === 'month') {
+        const targetDate = new Date(today.getFullYear(), today.getMonth() + direction, 1);
+        const newYear = targetDate.getFullYear();
+        const newMonth = String(targetDate.getMonth() + 1).padStart(2, '0');
+        const newDay = String(targetDate.getDate()).padStart(2, '0');
+        setDashboardFilter(`${newYear}-${newMonth}-01`);
+        return;
+    }
+
+    // Điều hướng khoảng ngày tùy chỉnh (di chuyển ngày bắt đầu và kết thúc thêm 1 tháng)
+    if (currentFilter === 'custom_range') {
+        const startInput = document.getElementById('filter-start-date');
+        const endInput = document.getElementById('filter-end-date');
+        if (startInput && endInput) {
+            if (startInput.value) {
+                const sParts = startInput.value.split('-');
+                if (sParts.length === 3) {
+                    const sDate = new Date(parseInt(sParts[0], 10), parseInt(sParts[1], 10) - 1 + direction, parseInt(sParts[2], 10));
+                    startInput.value = `${sDate.getFullYear()}-${String(sDate.getMonth() + 1).padStart(2, '0')}-${String(sDate.getDate()).padStart(2, '0')}`;
+                }
+            }
+            if (endInput.value) {
+                const eParts = endInput.value.split('-');
+                if (eParts.length === 3) {
+                    const eDate = new Date(parseInt(eParts[0], 10), parseInt(eParts[1], 10) - 1 + direction, parseInt(eParts[2], 10));
+                    endInput.value = `${eDate.getFullYear()}-${String(eDate.getMonth() + 1).padStart(2, '0')}-${String(eDate.getDate()).padStart(2, '0')}`;
+                }
+            }
+            renderDashboard();
+        }
+        return;
+    }
+
+    // Kiểm tra nếu currentFilter là năm 4 chữ số
+    if (currentFilter.length === 4 && !isNaN(currentFilter)) {
+        const currentYear = parseInt(currentFilter, 10);
+        const newYear = currentYear + direction;
+        setDashboardFilter(String(newYear));
+        return;
+    }
+
+    // Nếu không, đó là một ngày cụ thể YYYY-MM-DD hoặc YYYY-MM
+    const parts = currentFilter.split('-');
+    if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1; // 0-11
+        const d = parseInt(parts[2], 10);
+
+        // Di chuyển từng tháng một nhưng vẫn giữ nguyên ngày (hành vi tiêu chuẩn)
+        const targetDate = new Date(y, m + direction, d);
+        const newYear = targetDate.getFullYear();
+        const newMonth = String(targetDate.getMonth() + 1).padStart(2, '0');
+        const newDay = String(targetDate.getDate()).padStart(2, '0');
+
+        setDashboardFilter(`${newYear}-${newMonth}-${newDay}`);
+        return;
+    }
+
+    if (parts.length === 2) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1; // 0-11
+
+        const targetDate = new Date(y, m + direction, 1);
+        const newYear = targetDate.getFullYear();
+        const newMonth = String(targetDate.getMonth() + 1).padStart(2, '0');
+
+        setDashboardFilter(`${newYear}-${newMonth}-01`);
+        return;
+    }
+}
+window.changeDashboardMonth = changeDashboardMonth;
+
+function restoreDemoData() {
+    const email = state.user;
+    if (!email) return;
+
+    localStorage.setItem(`chi_tieu_${email}_transactions`, JSON.stringify(INITIAL_TRANSACTIONS));
+    localStorage.setItem(`chi_tieu_${email}_budgets`, JSON.stringify(INITIAL_BUDGETS));
+    localStorage.setItem(`chi_tieu_${email}_expense_categories`, JSON.stringify(EXPENSE_CATEGORIES));
+    localStorage.setItem(`chi_tieu_${email}_income_categories`, JSON.stringify(INCOME_CATEGORIES));
+
+    showToast(state.language === 'vi' ? 'Khôi phục dữ liệu mẫu thành công!' : 'Sample data restored successfully!');
+    loadUserData();
+    renderDashboard();
+}
+window.restoreDemoData = restoreDemoData;
+
+let showExceededOnly = false; // Trạng thái bộ lọc "Chỉ xem ngày vượt hạn mức"
+
+// Hàm cập nhật hạn mức vào LocalStorage
+window.updateDailyLimit = function(val) {
+    const email = state.user;
+    if (!email) return;
+    localStorage.setItem(`chi_tieu_${email}_daily_limit`, val);
+    renderDashboard();
+};
+
+// Hàm bật/tắt chế độ xem lịch sử vượt mức
+window.toggleExceededOnly = function() {
+    showExceededOnly = !showExceededOnly;
+    renderDashboard();
+};
+
+function renderDashboard() {
+    const lang = state.language;
+    const t = TRANSLATIONS[lang];
+
+    // Áp dụng các bản dịch văn bản nhanh một cách linh hoạt
+    document.getElementById('dashboard-heading').innerText = t.reportTab;
+
+    let subText = lang === 'vi' ? 'Tổng quan tình hình thu chi & ngân sách' : 'Overall status of income, expenses & budgets';
+
+    const fastFilterLabel = document.getElementById('fast-filter-label');
+    if (fastFilterLabel) fastFilterLabel.innerText = lang === 'vi' ? 'Bộ lọc nhanh' : 'Quick Filters';
+
+    const customPickerLabel = document.getElementById('custom-picker-label');
+    if (customPickerLabel) customPickerLabel.innerText = lang === 'vi' ? 'Ngày thực hiện' : 'Date selected';
+
+    const rangePickerLabel = document.getElementById('range-picker-label');
+    if (rangePickerLabel) rangePickerLabel.innerText = lang === 'vi' ? 'Lọc theo khoảng ngày' : 'Date range filter';
+
+    const rangeStartLabel = document.getElementById('range-start-label');
+    if (rangeStartLabel) rangeStartLabel.innerText = lang === 'vi' ? 'Từ' : 'From';
+
+    const rangeEndLabel = document.getElementById('range-end-label');
+    if (rangeEndLabel) rangeEndLabel.innerText = lang === 'vi' ? 'Đến' : 'To';
+
+    const navFilterLabel = document.getElementById('nav-filter-label');
+    if (navFilterLabel) navFilterLabel.innerText = lang === 'vi' ? 'Di chuyển' : 'Browse';
+
+    const filterAllBtn = document.getElementById('filter-all-btn');
+    if (filterAllBtn) filterAllBtn.innerText = lang === 'vi' ? 'Tất cả' : 'All time';
+
+    const filterMonthBtn = document.getElementById('filter-month-btn');
+    if (filterMonthBtn) filterMonthBtn.innerText = lang === 'vi' ? 'Tháng này' : 'This Month';
+
+    document.getElementById('balance-label').innerText = lang === 'vi' ? 'Số dư hiện có' : 'Wallet Balance';
+    document.getElementById('balance-sub-label').innerText = t.walletSub;
+    document.getElementById('income-label').innerText = t.totalIncome;
+    document.getElementById('expense-label').innerText = t.totalExpense;
+
+    document.getElementById('income-desc-label').innerText = lang === 'vi' ? 'Từ giao dịch thực tế' : 'From actual sources';
+    document.getElementById('expense-desc-label').innerText = lang === 'vi' ? 'Đã thanh toán thực tế' : 'Actually spent';
+
+    const pieHeading = document.getElementById('pie-chart-heading');
+    if (pieHeading) pieHeading.innerHTML = `<i data-lucide="pie-chart" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Cơ cấu các khoản chi tiêu' : 'Expense Structure Breakdown'}`;
+
+    const budgetHeading = document.getElementById('budget-tracking-heading');
+    if (budgetHeading) budgetHeading.innerHTML = `<i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-500"></i> ${lang === 'vi' ? 'Theo dõi hạn mức ngân sách' : 'Monthly Budget Tracking'}`;
+
+    const budgetCustomize = document.getElementById('budget-customize-link');
+    if (budgetCustomize) budgetCustomize.innerText = lang === 'vi' ? 'Tùy chỉnh' : 'Customize';
+
+    const dailySpendingHeading = document.getElementById('daily-spending-heading');
+    if (dailySpendingHeading) dailySpendingHeading.innerHTML = `<i data-lucide="calendar-days" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Danh mục chi tiêu theo ngày' : 'Daily Spending Breakdown'}`;
+
+    const dailySpendingSub = document.getElementById('daily-spending-sub');
+    if (dailySpendingSub) dailySpendingSub.innerText = lang === 'vi' ? 'Tổng kết chi tiết theo từng ngày' : 'Summary categorized by day';
+
+    const recentHeading = document.getElementById('recent-tx-heading');
+    if (recentHeading) recentHeading.innerHTML = `<i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Giao dịch gần đây' : 'Recent Transactions'}`;
+
+    const viewAllLink = document.getElementById('view-all-ledger-link');
+    if (viewAllLink) viewAllLink.innerHTML = `${lang === 'vi' ? 'Tất cả sổ' : 'Detailed ledger'} <i data-lucide="chevron-right" class="w-3 h-3"></i>`;
+
+    const quickHeading = document.getElementById('quick-actions-heading');
+    if (quickHeading) quickHeading.innerHTML = `<i data-lucide="settings" class="w-3.5 h-3.5 text-indigo-500"></i> ${lang === 'vi' ? 'Thao tác nhanh' : 'Quick Controls'}`;
+
+    const quickDesc = document.getElementById('quick-actions-desc');
+    if (quickDesc) quickDesc.innerText = lang === 'vi' ? 'Bạn có thể khôi phục nhanh bộ dữ liệu thu chi mẫu ban đầu để tham khảo và trải nghiệm cách hệ thống phân tích báo cáo.' : 'You can quickly restore the standard sample presets to see how the cashflow analytics dashboard visualizes information.';
+
+    const btnNewRecord = document.getElementById('btn-new-record');
+    if (btnNewRecord) btnNewRecord.innerHTML = `<i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> ${lang === 'vi' ? 'Tạo ghi chép mới' : 'Record new transaction'}`;
+
+    const btnRestoreDemo = document.getElementById('btn-restore-demo');
+    if (btnRestoreDemo) btnRestoreDemo.innerHTML = `<i data-lucide="refresh-cw" class="w-3 h-3 text-indigo-500 animate-hover"></i> ${lang === 'vi' ? 'Khôi phục mẫu dữ liệu' : 'Reset preset demo'}`;
+
+    // Lọc các giao dịch dựa trên ngày nếu bộ lọc là 'month', 'custom_range', hoặc ngày cụ thể
+    let list = state.transactions || [];
+
+    if (currentFilter === 'month') {
+        const today = new Date(); // Năm 2026, hãy xem xét tháng 6/7 năm 2026
+        const curYear = today.getFullYear();
+        const curMonth = today.getMonth(); // 0-11
+
+        subText += lang === 'vi' ? ` (Tháng này: ${curMonth + 1}/${curYear})` : ` (This month: ${curMonth + 1}/${curYear})`;
+
+        list = list.filter(tx => {
+            const txDate = new Date(tx.date);
+            return txDate.getFullYear() === curYear && txDate.getMonth() === curMonth;
+        });
+    } else if (currentFilter === 'custom_range') {
+        const startInput = document.getElementById('filter-start-date');
+        const endInput = document.getElementById('filter-end-date');
+        const startVal = startInput ? startInput.value : '';
+        const endVal = endInput ? endInput.value : '';
+
+        const formatDate = (val) => {
+            const p = val.split('-');
+            return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : val;
+        };
+
+        if (startVal && endVal) {
+            subText += lang === 'vi' ? ` (Từ ngày ${formatDate(startVal)} đến ${formatDate(endVal)})` : ` (From ${formatDate(startVal)} to ${formatDate(endVal)})`;
+        } else if (startVal) {
+            subText += lang === 'vi' ? ` (Từ ngày ${formatDate(startVal)})` : ` (From ${formatDate(startVal)})`;
+        } else if (endVal) {
+            subText += lang === 'vi' ? ` (Đến ngày ${formatDate(endVal)})` : ` (Until ${formatDate(endVal)})`;
+        } else {
+            subText += lang === 'vi' ? ' (Tất cả khoảng ngày)' : ' (All ranges)';
+        }
+
+        list = list.filter(tx => {
+            if (!tx.date) return false;
+            if (startVal && tx.date < startVal) return false;
+            if (endVal && tx.date > endVal) return false;
+            return true;
+        });
+    } else if (currentFilter !== 'all') {
+        const parts = currentFilter.split('-');
+        if (parts.length === 3) {
+            // Lọc theo ngày chính xác (YYYY-MM-DD)
+            subText += lang === 'vi' ? ` (Ngày ${parts[2]}/${parts[1]}/${parts[0]})` : ` (Date ${parts[2]}/${parts[1]}/${parts[0]})`;
+            list = list.filter(tx => tx.date === currentFilter);
+        } else if (parts.length === 2) {
+            // Lọc theo tháng (YYYY-MM)
+            const filterYear = parseInt(parts[0], 10);
+            const filterMonth = parseInt(parts[1], 10) - 1; // Tháng trong JS bắt đầu từ 0
+            subText += lang === 'vi' ? ` (Tháng ${parts[1]}/${parts[0]})` : ` (Month ${parts[1]}/${parts[0]})`;
+            list = list.filter(tx => {
+                const txDate = new Date(tx.date);
+                return txDate.getFullYear() === filterYear && txDate.getMonth() === filterMonth;
+            });
+        } else if (parts.length === 1 && currentFilter.length === 4 && !isNaN(currentFilter)) {
+            // Lọc theo năm
+            const filterYear = parseInt(currentFilter, 10);
+            subText += lang === 'vi' ? ` (Năm ${filterYear})` : ` (Year ${filterYear})`;
+            list = list.filter(tx => {
+                const txDate = new Date(tx.date);
+                return txDate.getFullYear() === filterYear;
+            });
+        }
+    } else {
+        subText += lang === 'vi' ? ' (Tất cả thời gian)' : ' (All time)';
+    }
+
+    document.getElementById('dashboard-sub').innerText = subText;
+
+    // Tính toán các thông số đo lường
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    list.forEach(tx => {
+        if (tx.type === 'INCOME') {
+            totalIncome += Number(tx.amount);
+        } else {
+            totalExpense += Number(tx.amount);
+        }
+    });
+
+    const balance = totalIncome - totalExpense;
+
+    // Hiển thị các thông số
+    document.getElementById('balance-value').innerText = formatVND(balance);
+    document.getElementById('income-value').innerText = formatVND(totalIncome);
+    document.getElementById('expense-value').innerText = formatVND(totalExpense);
+
+    // Nhóm chi tiêu theo Danh mục
+    const expenseMap = {};
+    list.forEach(tx => {
+        if (tx.type === 'EXPENSE') {
+            if (tx.type === 'EXPENSE' && tx.category !== 'Savings') {
+                expenseMap[tx.category] =
+                    (expenseMap[tx.category] || 0)
+                    + Number(tx.amount);
+            }
+        }
+    });
+
+    // Hiển thị Biểu đồ và phân tích danh mục
+    renderCategoryBreakdown(expenseMap, totalExpense);
+
+    // Hiển thị thanh tiến độ Hạn mức Ngân sách
+    renderBudgetMeters(expenseMap);
+
+    // Hiển thị Phân tích chi tiêu hàng ngày
+    renderDailySpendingBreakdown(list);
+
+    // Hiển thị Danh sách Giao dịch gần đây
+    renderRecentTransactionsList(list.slice(0, 5));
+
+    if (window.lucide) window.lucide.createIcons();
+}
+
+function renderCategoryBreakdown(expenseMap, totalExpense) {
+    const lang = state.language;
+    const labelsContainer = document.getElementById('pie-labels-container');
+    labelsContainer.innerHTML = '';
+
+    const categories = Object.keys(expenseMap);
+
+    if (categories.length === 0) {
+        document.getElementById('pie-chart-placeholder').classList.remove('hidden');
+        document.getElementById('category-pie-chart').style.display = 'none';
+
+        labelsContainer.innerHTML = `
+      <div class="text-xs text-slate-400 dark:text-slate-500 font-bold text-center py-4">
+        ${lang === 'vi' ? 'Không tìm thấy dữ liệu chi tiêu phù hợp.' : 'No matching expense data found.'}
+      </div>
+    `;
+
+        if (categoryChartInstance) {
+            categoryChartInstance.destroy();
+            categoryChartInstance = null;
+        }
+        return;
+    }
+
+    document.getElementById('pie-chart-placeholder').classList.add('hidden');
+    document.getElementById('category-pie-chart').style.display = 'block';
+
+    const chartData = [];
+    const chartLabels = [];
+    const chartColors = [];
+
+    // Sắp xếp danh mục theo số tiền giảm dần
+    const sortedCats = categories.map(cat => ({
+        name: cat,
+        amount: expenseMap[cat],
+        percentage: totalExpense > 0 ? ((expenseMap[cat] / totalExpense) * 100).toFixed(1) : 0,
+        color: getCategoryColor(cat),
+        icon: getCategoryIcon(cat)
+    })).sort((a, b) => b.amount - a.amount);
+
+    sortedCats.forEach(item => {
+        chartData.push(item.amount);
+        chartLabels.push(translateCategory(item.name));
+        chartColors.push(item.color);
+
+        // Tạo nhãn chi tiết bên cạnh
+        const labelRow = document.createElement('div');
+        labelRow.className = 'flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-950 transition-all';
+        labelRow.innerHTML = `
+      <div class="flex items-center gap-2.5">
+        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${item.color}"></span>
+        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">${translateCategory(item.name)}</span>
+      </div>
+      <div class="text-right">
+        <span class="text-xs font-extrabold font-mono text-slate-800 dark:text-white">${formatVND(item.amount)}</span>
+        <span class="block text-[9px] font-bold text-slate-400 font-mono">${item.percentage}%</span>
+      </div>
+    `;
+        labelsContainer.appendChild(labelRow);
+    });
+
+    // Hiển thị/Cập nhật Thực thể ChartJS
+    const ctx = document.getElementById('category-pie-chart').getContext('2d');
+
+    if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+    }
+
+    categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: chartColors,
+                borderWidth: state.theme === 'dark' ? 2 : 1,
+                borderColor: state.theme === 'dark' ? '#0f172a' : '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` ${context.label}: ${formatVND(context.raw)}`;
+                        }
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+}
+
+function renderBudgetMeters(expenseMap) {
+    const container = document.getElementById('budget-meters-container');
+    container.innerHTML = '';
+
+    const budgets = state.budgets || [];
+    const lang = state.language;
+
+    if (budgets.length === 0) {
+        container.innerHTML = `
+      <div class="text-xs text-slate-400 font-bold text-center py-6">
+        ${lang === 'vi' ? 'Chưa cấu hình hạn mức nào.' : 'No budget limits configured yet.'}
+      </div>
+    `;
+        return;
+    }
+
+    let totalExceededCount = 0;
+
+    budgets.forEach(b => {
+        const spent = expenseMap[b.category] || 0;
+        const limit = b.limit || 0;
+        const percentage = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
+        const isExceeded = spent > limit;
+
+        if (isExceeded) {
+            totalExceededCount++;
+        }
+
+        const meter = document.createElement('div');
+        meter.className = 'space-y-1.5';
+        meter.innerHTML = `
+      <div class="flex justify-between items-center text-[11px] font-bold">
+        <span class="text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full" style="background-color: ${getCategoryColor(b.category)}"></span>
+          ${translateCategory(b.category)}
+        </span>
+        <span class="${isExceeded ? 'text-rose-500 font-extrabold' : 'text-slate-400'} font-mono">
+          ${formatVND(spent)} / ${formatVND(limit)}
+        </span>
+      </div>
+      <div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative">
+        <div class="h-full rounded-full transition-all duration-500 ${isExceeded ? 'bg-rose-500' : 'bg-emerald-500'}" style="width: ${percentage}%"></div>
+      </div>
+    `;
+        container.appendChild(meter);
+    });
+
+    // Hiển thị cảnh báo ngân sách nếu có bất kỳ danh mục nào vượt hạn mức
+    const alarmEl = document.getElementById('budget-alarm');
+    if (alarmEl) {
+        if (totalExceededCount > 0) {
+            alarmEl.classList.remove('hidden');
+            alarmEl.innerText = `${TRANSLATIONS[lang].alertOverhead} (${totalExceededCount})`;
+        } else {
+            alarmEl.classList.add('hidden');
+        }
+    }
+}
+
+function renderRecentTransactionsList(transactions) {
+    const container = document.getElementById('recent-transactions-list');
+    container.innerHTML = '';
+
+    const lang = state.language;
+    const t = TRANSLATIONS[lang];
+
+    if (transactions.length === 0) {
+        container.innerHTML = `
+      <div class="text-center py-8 text-xs font-bold text-slate-400">
+        ${t.noTransactionsYet}
+      </div>
+    `;
+        return;
+    }
+
+    transactions.forEach(tx => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between py-3 hover:bg-slate-50 dark:hover:bg-slate-900/40 rounded-xl px-2 transition-all';
+
+        const isIncome = tx.type === 'INCOME';
+        const color = getCategoryColor(tx.category);
+        const icon = getCategoryIcon(tx.category);
+
+        // Định dạng ngày gọn gàng
+        const dateFormatted = new Date(tx.date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        item.innerHTML = `
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white" style="background-color: ${color}">
+          <i data-lucide="${icon}" class="w-5 h-5"></i>
+        </div>
+        <div class="min-w-0">
+          <h5 class="text-xs font-extrabold text-slate-800 dark:text-white truncate">${translateUserText(tx.title)}</h5>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md" style="background-color: ${color}; color: ${color}">${translateCategory(tx.category)}</span>
+            <span class="text-[10px] font-semibold text-slate-400">${dateFormatted}</span>
+          </div>
+        </div>
+      </div>
+      <div class="text-right flex-shrink-0">
+        <span class="text-xs font-black font-mono ${isIncome ? 'text-emerald-500' : 'text-slate-800 dark:text-white'}">
+          ${isIncome ? '+' : '-'}${formatVND(tx.amount)}
+        </span>
+        ${tx.notes ? `<span class="block text-[9px] font-bold text-slate-400 mt-0.5 max-w-[120px] truncate">${translateUserText(tx.notes)}</span>` : ''}
+      </div>
+    `;
+
+        container.appendChild(item);
+    });
+
+    if (window.lucide) window.lucide.createIcons();
+}
+
+function renderDailySpendingBreakdown(allTransactions) {
+    const container = document.getElementById('daily-spending-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const lang = state.language;
+    const isVi = lang === 'vi';
+
+    // Loại trừ 'Savings' và các mục cố định để tính sinh hoạt phí
+    const EXCLUDED_CATEGORIES = ['Nhà cửa & Dịch vụ', 'Giáo dục', 'Sức khỏe', 'Savings'];
+
+    const email = state.user;
+    const dailyLimit = Number(localStorage.getItem(`chi_tieu_${email}_daily_limit`) || 1000000);
+
+    // Đồng bộ giá trị lên các ô input
+    if (document.getElementById('daily-limit-input')) document.getElementById('daily-limit-input').value = dailyLimit;
+    if (document.getElementById('daily-month-filter')) document.getElementById('daily-month-filter').value = sectionMonthFilter;
+
+    // --- LOGIC LỌC DỮ LIỆU ---
+    let transactionsToRender = allTransactions;
+
+    // Ưu tiên lọc theo Ngày nếu người dùng có chọn ngày cụ thể
+    if (sectionDateFilter) {
+        transactionsToRender = (state.transactions || []).filter(tx => tx.date === sectionDateFilter);
+    }
+    // Nếu không chọn ngày thì mới lọc theo Tháng
+    else if (sectionMonthFilter) {
+        const [year, month] = sectionMonthFilter.split('-').map(Number);
+        transactionsToRender = (state.transactions || []).filter(tx => {
+            const d = new Date(tx.date);
+            return d.getFullYear() === year && (d.getMonth() + 1) === month;
+        });
+    }
+
+    // Quan trọng: Đảm bảo ô input vẫn giữ ngày đã chọn sau khi render
+    if (document.getElementById('daily-date-filter')) {
+        document.getElementById('daily-date-filter').value = sectionDateFilter;
+    }
+
+    const expenses = transactionsToRender.filter(tx => tx.type === 'EXPENSE');
+
+    // (Code phần nút Lịch sử...)
+    const exceededBtn = document.getElementById('exceeded-only-btn');
+    if (exceededBtn) {
+        if (showExceededOnly) {
+            exceededBtn.innerText = isVi ? 'Xem tất cả' : 'Show All';
+            exceededBtn.className = "text-[10px] font-bold px-3 py-2 rounded-lg bg-rose-500 text-white shadow-sm border-0 cursor-pointer";
+        } else {
+            exceededBtn.innerText = isVi ? 'Lịch sử vượt mức' : 'Exceed History';
+            exceededBtn.className = "text-[10px] font-bold px-3 py-2 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 cursor-pointer bg-transparent";
+        }
+    }
+
+    if (expenses.length === 0) {
+        container.className = "col-span-1 md:col-span-2 lg:col-span-3 text-center py-12 text-xs font-bold text-slate-400";
+        container.innerHTML = isVi ? 'Không có dữ liệu chi tiêu trong tháng này.' : 'No data for this month.';
+        return;
+    }
+
+    // --- GOM NHÓM THEO NGÀY ---
+    const groupedByDate = {};
+    expenses.forEach(tx => {
+        const d = tx.date;
+        if (!groupedByDate[d]) groupedByDate[d] = { total: 0, totalForLimit: 0, categories: {} };
+        const amount = Number(tx.amount);
+        groupedByDate[d].total += amount;
+        if (!EXCLUDED_CATEGORIES.includes(tx.category)) groupedByDate[d].totalForLimit += amount;
+        groupedByDate[d].categories[tx.category] = (groupedByDate[d].categories[tx.category] || 0) + amount;
+    });
+
+    let sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+    if (showExceededOnly) sortedDates = sortedDates.filter(d => groupedByDate[d].totalForLimit > dailyLimit);
+
+    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
+
+    sortedDates.forEach(dateStr => {
+        const data = groupedByDate[dateStr];
+        const isExceeded = data.totalForLimit > dailyLimit;
+        const percentOfLimit = Math.min((data.totalForLimit / dailyLimit) * 100, 100);
+        const dateFormatted = new Date(dateStr).toLocaleDateString(isVi ? 'vi-VN' : 'en-US', {
+            weekday: 'long', day: 'numeric', month: 'short', year: 'numeric'
+        });
+
+        const card = document.createElement('div');
+        card.className = `border rounded-xl p-4 flex flex-col justify-between transition-all hover:shadow-md ${isExceeded ? 'bg-rose-50/30 dark:bg-rose-950/10 border-rose-200 dark:border-rose-900/40' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`;
+        card.innerHTML = `
+            <div>
+                <div class="flex justify-between items-start pb-2 mb-3 border-b border-slate-100 dark:border-slate-800/40">
+                    <span class="text-[10px] font-black text-slate-700 dark:text-slate-300 capitalize">${dateFormatted}</span>
+                    <div class="text-right">
+                        <span class="text-xs font-black ${isExceeded ? 'text-rose-600' : 'text-slate-800 dark:text-white'} font-mono">${formatVND(data.total)}</span>
+                        ${isExceeded ? '<span class="block text-[8px] font-extrabold text-rose-500 uppercase">Vượt sinh hoạt phí!</span>' : ''}
+                    </div>
+                </div>
+                <div class="mb-4 bg-slate-50/50 dark:bg-slate-800/20 p-2 rounded-lg">
+                    <div class="flex justify-between items-center mb-1 text-[9px] font-bold">
+                        <span class="text-slate-500">Biến đổi: ${formatVND(data.totalForLimit)}</span>
+                        <span class="text-slate-400">HM: ${formatVND(dailyLimit)}</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500 ${isExceeded ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-emerald-500'}" style="width: ${percentOfLimit}%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    ${Object.keys(data.categories).map(cat => `
+                        <div class="flex items-center justify-between text-[10px] font-bold">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <div class="w-4 h-4 rounded-md flex items-center justify-center text-white" style="background-color: ${getCategoryColor(cat)}">
+                                    <i data-lucide="${getCategoryIcon(cat)}" class="w-2.5 h-2.5"></i>
+                                </div>
+                                <span class="${EXCLUDED_CATEGORIES.includes(cat) ? 'text-slate-400 italic font-medium' : 'text-slate-600 dark:text-slate-400'} truncate">${translateCategory(cat)}</span>
+                            </div>
+                            <span class="text-slate-700 dark:text-slate-300 font-mono">${formatVND(data.categories[cat])}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        container.appendChild(card);
+    });
+
+    if (window.lucide) window.lucide.createIcons();
+}
+
+// Chạy khởi tạo
+if (document.readyState !== 'loading') {
+    injectSharedLayout('dashboard');
+    renderDashboard();
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        injectSharedLayout('dashboard');
+        renderDashboard();
+    });
+}
