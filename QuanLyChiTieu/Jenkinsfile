@@ -1,0 +1,100 @@
+// =====================================================================
+// Jenkinsfile - Dự án Quản Lý Chi Tiêu Cá Nhân (Spring Boot + Gradle)
+// Repo: https://github.com/vucongtien55-cpu/DuAnCaNhan
+// Jenkins job cấu hình "Pipeline script from SCM", Script Path: QuanLyChiTieu/Jenkinsfile
+// =====================================================================
+pipeline {
+    // Chạy trên bất kỳ node nào. Image jenkins/jenkins:*-jdk21 đã có sẵn JDK 21,
+    // đúng phiên bản dự án yêu cầu, nên không cần cài thêm JDK.
+    agent any
+
+    environment {
+        // Repo chứa nhiều dự án, dự án này nằm trong thư mục con QuanLyChiTieu
+        PROJECT_DIR = 'QuanLyChiTieu'
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))   // chỉ giữ 10 lần build gần nhất
+        timeout(time: 30, unit: 'MINUTES')                 // tránh build bị treo mãi
+        disableConcurrentBuilds()                          // không chạy 2 build cùng lúc
+    }
+
+    triggers {
+        // Cứ ~5 phút Jenkins kiểm tra GitHub một lần, có commit mới thì tự build.
+        // (Jenkins chạy ở localhost nên GitHub không gọi webhook vào được.)
+        pollSCM('H/5 * * * *')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Lấy mã nguồn từ đúng repo/nhánh đã cấu hình trong job
+                checkout scm
+                sh 'git log -1 --pretty=format:"Commit: %h - %s (%an)"'
+            }
+        }
+
+        stage('Environment') {
+            steps {
+                dir("${PROJECT_DIR}") {
+                    sh 'java -version'
+                    sh 'chmod +x gradlew'          // phòng trường hợp mất quyền thực thi
+                    sh './gradlew --version --no-daemon'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir("${PROJECT_DIR}") {
+                    // clean: xóa kết quả cũ; assemble: biên dịch + đóng gói .jar (chưa chạy test)
+                    sh './gradlew clean assemble --no-daemon'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir("${PROJECT_DIR}") {
+                    // Chạy toàn bộ test JUnit 5 (dùng H2, không cần PostgreSQL)
+                    sh './gradlew test --no-daemon'
+                }
+            }
+            post {
+                always {
+                    // JUnit plugin: đọc file XML kết quả test -> biểu đồ, tab "Test Result"
+                    junit testResults: "${PROJECT_DIR}/build/test-results/test/*.xml",
+                          allowEmptyResults: true
+                    // HTML Publisher plugin: hiển thị báo cáo test dạng web của Gradle
+                    publishHTML(target: [
+                        reportName           : 'Gradle Test Report',
+                        reportDir            : "${PROJECT_DIR}/build/reports/tests/test",
+                        reportFiles          : 'index.html',
+                        keepAll              : true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing         : true
+                    ])
+                }
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                // Lưu file .jar làm "artifact" để tải về từ trang build
+                archiveArtifacts artifacts: "${PROJECT_DIR}/build/libs/*.jar", fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '[OK] Pipeline THÀNH CÔNG: build + test đều đạt.'
+        }
+        failure {
+            echo '[FAIL] Pipeline THẤT BẠI: xem Console Output / tab Test Result để tìm nguyên nhân.'
+        }
+        always {
+            echo "Kết thúc build #${env.BUILD_NUMBER} - trạng thái: ${currentBuild.currentResult}"
+        }
+    }
+}
